@@ -16,3 +16,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+  # 완전히 격리된 테스트 전용 더미 키 (실제 비밀키와 무관)
+  secret: dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3RpbmctcHVycG9zZXMtb25seS1wbGVhc2UtZG8tbm90LXVzZS1pbi1wcm9kdWN0aW9uLTIwMjYwODI0
+  access-token-expiration-seconds: 3600
+  refresh-token-expiration-seconds: 604800
