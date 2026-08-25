@@ -93,7 +93,8 @@ class UserRepositoryTest {
                 .build());
 
         // when
-        user.updateProfile("NewName", "https://avatars.steamstatic.com/new.jpg", "#FF007F");
+        user.syncSteamProfile("NewName", "https://avatars.steamstatic.com/new.jpg");
+        user.updateThemeColor("#FF007F");
         user.updateVisibility(false);
         user.softDelete();
         userRepository.flush();

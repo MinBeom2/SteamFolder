@@ -40,20 +40,32 @@ public class User extends BaseTimeEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    public void updateProfile(String username, String avatarUrl, String themeColor) {
+    /**
+     * 유저 커스텀: 쇼케이스 메인 테마 색상 수정
+     */
+    public void updateThemeColor(String themeColor) {
+        if (themeColor != null && !themeColor.isBlank()) {
+            this.themeColor = themeColor;
+        }
+    }
+
+    /**
+     * 유저 커스텀: 쇼케이스 공개 여부 수정
+     */
+    public void updateVisibility(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+
+    /**
+     * 스팀 연동 동기화: 스팀 프로필 정보(닉네임, 아바타) 자동 최신화
+     */
+    public void syncSteamProfile(String username, String avatarUrl) {
         if (username != null && !username.isBlank()) {
             this.username = username;
         }
         if (avatarUrl != null) {
             this.avatarUrl = avatarUrl;
         }
-        if (themeColor != null && !themeColor.isBlank()) {
-            this.themeColor = themeColor;
-        }
-    }
-
-    public void updateVisibility(boolean isPublic) {
-        this.isPublic = isPublic;
     }
 
     public void softDelete() {

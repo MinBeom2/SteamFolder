@@ -64,7 +64,7 @@ public class AuthService {
         } else {
             user = optionalUser.get();
             if (request.getUsername() != null || request.getAvatarUrl() != null) {
-                user.updateProfile(request.getUsername(), request.getAvatarUrl(), null);
+                user.syncSteamProfile(request.getUsername(), request.getAvatarUrl());
             }
             log.info("기존 유저 로그인 완료: userId={}, steamId={}", user.getId(), user.getSteamId());
         }
