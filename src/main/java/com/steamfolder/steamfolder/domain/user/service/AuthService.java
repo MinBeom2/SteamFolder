@@ -3,6 +3,9 @@ package com.steamfolder.steamfolder.domain.user.service;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.common.security.jwt.JwtTokenProvider;
+import com.steamfolder.steamfolder.domain.game.client.SteamApiClient;
+import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerSummaryResponseDto;
+import com.steamfolder.steamfolder.domain.game.service.SteamSyncService;
 import com.steamfolder.steamfolder.domain.user.dto.request.SteamLoginRequest;
 import com.steamfolder.steamfolder.domain.user.dto.request.TokenRefreshRequest;
 import com.steamfolder.steamfolder.domain.user.dto.response.AuthResponse;
@@ -29,6 +32,8 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final SteamOpenIdValidator steamOpenIdValidator;
+    private final SteamApiClient steamApiClient;
+    private final SteamSyncService steamSyncService;
 
     @Transactional
     public AuthResponse loginWithSteam(SteamLoginRequest request) {
@@ -43,37 +48,72 @@ public class AuthService {
             throw new CustomException(ErrorCode.STEAM_AUTH_FAILED, "스팀 인증 정보가 올바르지 않습니다.");
         }
 
-        // 2. 유저 조회 또는 신규 회원가입
+        // 2. 스팀 공식 API를 통해 실제 닉네임과 아바타 이미지 조회
+        String realUsername = request.getUsername();
+        String realAvatarUrl = request.getAvatarUrl();
+
+        try {
+            Optional<SteamPlayerSummaryResponseDto.PlayerDto> playerSummary = steamApiClient.getPlayerSummary(steamId);
+            if (playerSummary.isPresent()) {
+                SteamPlayerSummaryResponseDto.PlayerDto player = playerSummary.get();
+                if (player.getPersonaName() != null && !player.getPersonaName().isBlank()) {
+                    realUsername = player.getPersonaName();
+                }
+                if (player.getAvatarFull() != null && !player.getAvatarFull().isBlank()) {
+                    realAvatarUrl = player.getAvatarFull();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("스팀 프로필 정보 조회 실패 (기본값 사용): steamId={}", steamId, e);
+        }
+
+        if (realUsername == null || realUsername.isBlank()) {
+            realUsername = "SteamUser_" + (steamId.length() > 4 ? steamId.substring(steamId.length() - 4) : steamId);
+        }
+
+        // 3. 유저 조회 또는 신규 회원가입 / 탈퇴 계정 재가입(Reactivation)
         Optional<User> optionalUser = userRepository.findBySteamId(steamId);
-        boolean isNewUser = optionalUser.isEmpty();
+        boolean isNewUser;
         User user;
 
-        if (isNewUser) {
-            String defaultUsername = (request.getUsername() != null && !request.getUsername().isBlank())
-                    ? request.getUsername()
-                    : "SteamUser_" + (steamId.length() > 4 ? steamId.substring(steamId.length() - 4) : steamId);
-
+        if (optionalUser.isEmpty()) {
+            isNewUser = true;
             user = userRepository.save(User.builder()
                     .steamId(steamId)
-                    .username(defaultUsername)
-                    .avatarUrl(request.getAvatarUrl())
+                    .username(realUsername)
+                    .avatarUrl(realAvatarUrl)
                     .themeColor("#1A1B26")
                     .isPublic(true)
                     .build());
-            log.info("신규 유저 회원가입 완료: userId={}, steamId={}", user.getId(), user.getSteamId());
+            log.info("신규 유저 회원가입 완료: userId={}, steamId={}, username={}", user.getId(), user.getSteamId(), user.getUsername());
         } else {
             user = optionalUser.get();
-            if (request.getUsername() != null || request.getAvatarUrl() != null) {
-                user.syncSteamProfile(request.getUsername(), request.getAvatarUrl());
+            if (user.isDeleted()) {
+                isNewUser = true;
+                user.reactivate(realUsername, realAvatarUrl);
+                log.info("탈퇴 유저 재가입 및 계정 복구 완료: userId={}, steamId={}, username={}", user.getId(), user.getSteamId(), user.getUsername());
+            } else {
+                isNewUser = false;
+                user.syncSteamProfile(realUsername, realAvatarUrl);
+                log.info("기존 유저 로그인 및 프로필 동기화 완료: userId={}, steamId={}, username={}", user.getId(), user.getSteamId(), user.getUsername());
             }
-            log.info("기존 유저 로그인 완료: userId={}, steamId={}", user.getId(), user.getSteamId());
         }
 
-        // 3. JWT 토큰 발급
+        // 4. 신규 가입 또는 탈퇴 후 재가입 시 최초 게임 라이브러리 자동 동기화 트리거
+        if (isNewUser) {
+            try {
+                steamSyncService.syncUserGames(user);
+                log.info("신규 가입/재가입 유저 게임 라이브러리 최초 자동 동기화 완료: userId={}", user.getId());
+            } catch (Exception e) {
+                log.warn("신규 가입 유저 최초 자동 동기화 실패 (프로필 비공개 등): userId={}, error={}", user.getId(), e.getMessage());
+            }
+        }
+
+        // 5. JWT 토큰 발급
         String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getSteamId(), user.getUsername());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId(), user.getSteamId(), user.getUsername());
 
-        // 4. RefreshToken DB 적재 및 갱신 (7일 만료)
+        // 6. RefreshToken DB 적재 및 갱신 (7일 만료)
         LocalDateTime expiryDate = LocalDateTime.now().plusDays(7);
         refreshTokenRepository.findByUser(user)
                 .ifPresentOrElse(

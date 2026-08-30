@@ -1,6 +1,5 @@
 package com.steamfolder.steamfolder.domain.user.dto.request;
 
-import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
 import java.util.Map;
@@ -11,7 +10,7 @@ import java.util.Map;
 @Builder
 public class SteamLoginRequest {
 
-    @NotEmpty(message = "스팀 OpenID 인증 파라미터는 필수입니다.")
+    // 스팀 OpenID 2.0 파라미터 맵 (웹 리다이렉트 로그인 시 사용)
     private Map<String, String> openIdParams;
 
     // 간편 로그인/테스트용 직접 claimedId 또는 steamId 입력 지원

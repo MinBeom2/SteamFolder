@@ -68,6 +68,16 @@ public class User extends BaseTimeEntity {
         }
     }
 
+    /**
+     * 탈퇴 계정 재가입 및 복구 (Reactivation)
+     */
+    public void reactivate(String username, String avatarUrl) {
+        this.deletedAt = null;
+        this.isPublic = true;
+        this.themeColor = "#1A1B26";
+        this.syncSteamProfile(username, avatarUrl);
+    }
+
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
     }

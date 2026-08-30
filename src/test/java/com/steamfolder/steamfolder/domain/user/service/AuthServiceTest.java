@@ -3,6 +3,9 @@ package com.steamfolder.steamfolder.domain.user.service;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.common.security.jwt.JwtTokenProvider;
+import com.steamfolder.steamfolder.domain.game.client.SteamApiClient;
+import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerSummaryResponseDto;
+import com.steamfolder.steamfolder.domain.game.service.SteamSyncService;
 import com.steamfolder.steamfolder.domain.user.dto.request.SteamLoginRequest;
 import com.steamfolder.steamfolder.domain.user.dto.request.TokenRefreshRequest;
 import com.steamfolder.steamfolder.domain.user.dto.response.AuthResponse;
@@ -17,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -46,32 +50,41 @@ class AuthServiceTest {
     @Mock
     private SteamOpenIdValidator steamOpenIdValidator;
 
+    @Mock
+    private SteamApiClient steamApiClient;
+
+    @Mock
+    private SteamSyncService steamSyncService;
+
     @Test
-    @DisplayName("신규 유저 스팀 OpenID 최초 로그인 시 자동 회원가입 및 토큰 발급 검증")
+    @DisplayName("신규 유저 스팀 OpenID 최초 로그인 시 자동 회원가입, 라이브러리 동기화 및 토큰 발급 검증")
     void loginWithSteam_NewUser_Success() {
         // given
         Map<String, String> openIdParams = Map.of("openid.claimed_id", "https://steamcommunity.com/openid/id/76561198000000001");
         SteamLoginRequest request = SteamLoginRequest.builder()
                 .openIdParams(openIdParams)
-                .username("NewGamer")
-                .avatarUrl("https://avatars.steamstatic.com/new.jpg")
                 .build();
 
         String steamId = "76561198000000001";
+        SteamPlayerSummaryResponseDto.PlayerDto playerDto = new SteamPlayerSummaryResponseDto.PlayerDto();
+        ReflectionTestUtils.setField(playerDto, "personaName", "SteamGamer");
+        ReflectionTestUtils.setField(playerDto, "avatarFull", "https://avatars.steamstatic.com/gamer.jpg");
+
         User mockUser = User.builder()
                 .id(1L)
                 .steamId(steamId)
-                .username("NewGamer")
-                .avatarUrl("https://avatars.steamstatic.com/new.jpg")
+                .username("SteamGamer")
+                .avatarUrl("https://avatars.steamstatic.com/gamer.jpg")
                 .themeColor("#1A1B26")
                 .isPublic(true)
                 .build();
 
         given(steamOpenIdValidator.validateAndExtractSteamId(openIdParams)).willReturn(steamId);
+        given(steamApiClient.getPlayerSummary(steamId)).willReturn(Optional.of(playerDto));
         given(userRepository.findBySteamId(steamId)).willReturn(Optional.empty());
         given(userRepository.save(any(User.class))).willReturn(mockUser);
-        given(jwtTokenProvider.createAccessToken(1L, steamId, "NewGamer")).willReturn("mock-access-token");
-        given(jwtTokenProvider.createRefreshToken(1L, steamId, "NewGamer")).willReturn("mock-refresh-token");
+        given(jwtTokenProvider.createAccessToken(1L, steamId, "SteamGamer")).willReturn("mock-access-token");
+        given(jwtTokenProvider.createRefreshToken(1L, steamId, "SteamGamer")).willReturn("mock-refresh-token");
         given(refreshTokenRepository.findByUser(any(User.class))).willReturn(Optional.empty());
 
         // when
@@ -80,11 +93,47 @@ class AuthServiceTest {
         // then
         assertThat(response.isNewUser()).isTrue();
         assertThat(response.getUserId()).isEqualTo(1L);
-        assertThat(response.getSteamId()).isEqualTo(steamId);
+        assertThat(response.getUsername()).isEqualTo("SteamGamer");
         assertThat(response.getAccessToken()).isEqualTo("mock-access-token");
         assertThat(response.getRefreshToken()).isEqualTo("mock-refresh-token");
         verify(userRepository).save(any(User.class));
+        verify(steamSyncService).syncUserGames(mockUser); // 자동 동기화 호출 검증
         verify(refreshTokenRepository).save(any(RefreshToken.class));
+    }
+
+    @Test
+    @DisplayName("탈퇴했던 유저가 다시 로그인 시 계정 복구(Reactivation), 라이브러리 동기화 및 재가입 처리")
+    void loginWithSteam_SoftDeletedUser_Reactivates() {
+        // given
+        String steamId = "76561198000000009";
+        SteamLoginRequest request = SteamLoginRequest.builder()
+                .steamId(steamId)
+                .username("ReturnedGamer")
+                .avatarUrl("https://avatars.steamstatic.com/returned.jpg")
+                .build();
+
+        User softDeletedUser = User.builder()
+                .id(9L)
+                .steamId(steamId)
+                .username("OldGamer")
+                .deletedAt(LocalDateTime.now().minusDays(10))
+                .build();
+
+        given(userRepository.findBySteamId(steamId)).willReturn(Optional.of(softDeletedUser));
+        given(jwtTokenProvider.createAccessToken(9L, steamId, "ReturnedGamer")).willReturn("reactivated-access-token");
+        given(jwtTokenProvider.createRefreshToken(9L, steamId, "ReturnedGamer")).willReturn("reactivated-refresh-token");
+        given(refreshTokenRepository.findByUser(softDeletedUser)).willReturn(Optional.empty());
+
+        // when
+        AuthResponse response = authService.loginWithSteam(request);
+
+        // then
+        assertThat(response.isNewUser()).isTrue(); // 재가입으로 플래그 설정
+        assertThat(softDeletedUser.isDeleted()).isFalse();
+        assertThat(softDeletedUser.getDeletedAt()).isNull();
+        assertThat(softDeletedUser.getUsername()).isEqualTo("ReturnedGamer");
+        assertThat(response.getAccessToken()).isEqualTo("reactivated-access-token");
+        verify(steamSyncService).syncUserGames(softDeletedUser);
     }
 
     @Test
