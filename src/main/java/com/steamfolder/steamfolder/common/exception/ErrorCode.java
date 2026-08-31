@@ -27,6 +27,10 @@ public enum ErrorCode {
     FOLDER_NOT_FOUND(HttpStatus.NOT_FOUND, "F001", "존재하지 않는 폴더입니다."),
     FOLDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "F002", "해당 폴더에 대한 권한이 없습니다."),
     CIRCULAR_FOLDER_REFERENCE(HttpStatus.BAD_REQUEST, "F003", "자식 폴더를 상위 폴더로 지정할 수 없습니다."),
+    DUPLICATE_FOLDER_NAME(HttpStatus.CONFLICT, "F004", "동일한 경로에 이미 같은 이름의 폴더가 존재합니다."),
+    MAX_FOLDER_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "F005", "폴더 최대 깊이(5단계)를 초과할 수 없습니다."),
+    MAX_FOLDER_COUNT_EXCEEDED(HttpStatus.BAD_REQUEST, "F006", "생성 가능한 최대 폴더 개수(100개)를 초과했습니다."),
+    GAME_ALREADY_IN_FOLDER(HttpStatus.CONFLICT, "F007", "해당 폴더에 이미 추가된 게임입니다."),
 
     // Game
     GAME_NOT_FOUND(HttpStatus.NOT_FOUND, "G001", "존재하지 않는 게임입니다."),

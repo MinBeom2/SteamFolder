@@ -40,6 +40,13 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    public static ApiResponse<Void> successWithMessage(String message) {
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .message(message)
+                .build();
+    }
+
     public static ApiResponse<Void> error(String message) {
         return ApiResponse.<Void>builder()
                 .success(false)
