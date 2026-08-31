@@ -31,6 +31,7 @@ public enum ErrorCode {
     MAX_FOLDER_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "F005", "폴더 최대 깊이(5단계)를 초과할 수 없습니다."),
     MAX_FOLDER_COUNT_EXCEEDED(HttpStatus.BAD_REQUEST, "F006", "생성 가능한 최대 폴더 개수(100개)를 초과했습니다."),
     GAME_ALREADY_IN_FOLDER(HttpStatus.CONFLICT, "F007", "해당 폴더에 이미 추가된 게임입니다."),
+    MAX_FOLDER_GAME_COUNT_EXCEEDED(HttpStatus.BAD_REQUEST, "F008", "폴더당 배치할 수 있는 최대 게임 개수(102개)를 초과했습니다."),
 
     // Game
     GAME_NOT_FOUND(HttpStatus.NOT_FOUND, "G001", "존재하지 않는 게임입니다."),

@@ -200,27 +200,57 @@ class FolderRepositoryTest {
     }
 
     @Test
-    @DisplayName("동일 부모 폴더 내 폴더명 중복 존재 여부 확인 검증")
-    void existsByNameInSamePath() {
+    @DisplayName("동일 폴더 내 동일 게임을 서로 다른 2D 좌표에 다중 복제 배치 가능 검증")
+    void saveMultipleCopiesOfSameGameInSameFolder() {
         // given
         User user = userRepository.save(User.builder()
-                .steamId("76561198000000004")
-                .username("NameTester")
+                .steamId("76561198000000005")
+                .username("MemeMaster")
                 .build());
 
-        folderRepository.save(Folder.builder()
+        Folder folder = folderRepository.save(Folder.builder()
                 .user(user)
-                .name("인디 게임")
+                .name("최애 게임 도배")
+                .build());
+
+        Game game = gameRepository.save(Game.builder().appId(730L).name("CS2").build());
+
+        // 동일 게임을 (0, 0), (1, 0), (2, 0)에 3개 복제 배치
+        FolderGame copy1 = folderGameRepository.save(FolderGame.builder()
+                .folder(folder)
+                .game(game)
+                .positionX(0)
+                .positionY(0)
+                .build());
+
+        FolderGame copy2 = folderGameRepository.save(FolderGame.builder()
+                .folder(folder)
+                .game(game)
+                .positionX(1)
+                .positionY(0)
+                .build());
+
+        FolderGame copy3 = folderGameRepository.save(FolderGame.builder()
+                .folder(folder)
+                .game(game)
+                .positionX(2)
+                .positionY(0)
                 .build());
 
         entityManager.flush();
         entityManager.clear();
 
-        // when & then
-        boolean existsRoot = folderRepository.existsByUserAndParentFolderIsNullAndName(user, "인디 게임");
-        boolean existsOther = folderRepository.existsByUserAndParentFolderIsNullAndName(user, "FPS 게임");
+        // when
+        Folder managedFolder = folderRepository.findById(folder.getId()).orElseThrow();
+        List<FolderGame> games = folderGameRepository.findByFolderOrderByPositionYAscPositionXAsc(managedFolder);
 
-        assertThat(existsRoot).isTrue();
-        assertThat(existsOther).isFalse();
+        // then
+        assertThat(games).hasSize(3);
+        assertThat(games.get(0).getGame().getAppId()).isEqualTo(730L);
+        assertThat(games.get(1).getGame().getAppId()).isEqualTo(730L);
+        assertThat(games.get(2).getGame().getAppId()).isEqualTo(730L);
+        assertThat(games.get(0).getPositionX()).isEqualTo(0);
+        assertThat(games.get(1).getPositionX()).isEqualTo(1);
+        assertThat(games.get(2).getPositionX()).isEqualTo(2);
     }
 }

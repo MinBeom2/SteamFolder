@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "folder_games", indexes = {
-        @Index(name = "idx_folder_games_folder_app", columnList = "folder_id, app_id", unique = true),
         @Index(name = "idx_folder_games_folder_id", columnList = "folder_id"),
-        @Index(name = "idx_folder_games_position", columnList = "folder_id, position_y, position_x")
+        @Index(name = "idx_folder_games_position", columnList = "folder_id, position_y, position_x"),
+        @Index(name = "idx_folder_games_app_id", columnList = "app_id")
 })
 @EntityListeners(AuditingEntityListener.class)
 @Getter
