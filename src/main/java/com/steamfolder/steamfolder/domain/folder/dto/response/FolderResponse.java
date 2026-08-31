@@ -33,6 +33,9 @@ public class FolderResponse {
     private int childFolderCount;
 
     @Builder.Default
+    private List<BreadcrumbDto> breadcrumbs = new ArrayList<>();
+
+    @Builder.Default
     private List<FolderResponse> childFolders = new ArrayList<>();
 
     @Builder.Default
@@ -40,6 +43,15 @@ public class FolderResponse {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class BreadcrumbDto {
+        private Long id;
+        private String name;
+    }
 
     @Getter
     @NoArgsConstructor
@@ -56,11 +68,26 @@ public class FolderResponse {
     }
 
     /**
-     * 폴더 기본 정보 변환 (자식 폴더/게임 컬렉션 미포함)
+     * 폴더 기본 정보 변환 (직속 게임 목록 포함하여 2x2 미리보기 지원)
      */
     public static FolderResponse fromSimple(Folder folder) {
         int gameSize = folder.getFolderGames() != null ? folder.getFolderGames().size() : 0;
         int childSize = folder.getChildFolders() != null ? folder.getChildFolders().size() : 0;
+
+        List<FolderGameDto> gameResponses = new ArrayList<>();
+        if (folder.getFolderGames() != null) {
+            gameResponses = folder.getFolderGames().stream()
+                    .map(fg -> FolderGameDto.builder()
+                            .id(fg.getId())
+                            .appId(fg.getGame().getAppId())
+                            .name(fg.getGame().getName())
+                            .headerImage(fg.getGame().getHeaderImage())
+                            .positionX(fg.getPositionX())
+                            .positionY(fg.getPositionY())
+                            .genres(fg.getGame().getGenres())
+                            .build())
+                    .toList();
+        }
 
         return FolderResponse.builder()
                 .id(folder.getId())
@@ -74,19 +101,31 @@ public class FolderResponse {
                 .parentFolderId(folder.getParentFolder() != null ? folder.getParentFolder().getId() : null)
                 .gameCount(gameSize)
                 .childFolderCount(childSize)
+                .breadcrumbs(List.of())
                 .childFolders(List.of())
-                .games(List.of())
+                .games(gameResponses)
                 .createdAt(folder.getCreatedAt())
                 .updatedAt(folder.getUpdatedAt())
                 .build();
     }
 
     /**
-     * 특정 폴더 상세 변환 (직속 1단계 자식 폴더 목록 + 직속 게임 목록 포함)
+     * 특정 폴더 상세 변환 (상위 경로 Breadcrumbs + 직속 자식 폴더 목록 + 직속 게임 목록 포함)
      */
     public static FolderResponse from(Folder folder) {
         int gameSize = folder.getFolderGames() != null ? folder.getFolderGames().size() : 0;
         int childSize = folder.getChildFolders() != null ? folder.getChildFolders().size() : 0;
+
+        // 상위 부모 폴더 경로(Breadcrumbs) 탐색
+        List<BreadcrumbDto> breadcrumbList = new ArrayList<>();
+        Folder current = folder.getParentFolder();
+        while (current != null) {
+            breadcrumbList.add(0, BreadcrumbDto.builder()
+                    .id(current.getId())
+                    .name(current.getName())
+                    .build());
+            current = current.getParentFolder();
+        }
 
         // 직속 1단계 자식 폴더들 (자식의 자식은 재귀하지 않고 가볍게 기본 정보만)
         List<FolderResponse> directChildren = new ArrayList<>();
@@ -124,6 +163,7 @@ public class FolderResponse {
                 .parentFolderId(folder.getParentFolder() != null ? folder.getParentFolder().getId() : null)
                 .gameCount(gameSize)
                 .childFolderCount(childSize)
+                .breadcrumbs(breadcrumbList)
                 .childFolders(directChildren)
                 .games(gameResponses)
                 .createdAt(folder.getCreatedAt())

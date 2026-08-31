@@ -99,13 +99,13 @@ public class AuthService {
             }
         }
 
-        // 4. 신규 가입 또는 탈퇴 후 재가입 시 최초 게임 라이브러리 자동 동기화 트리거
+        // 4. 신규 가입 또는 탈퇴 후 재가입 시 최초 게임 라이브러리 자동 동기화 시도 (실패해도 로그인 성공)
         if (isNewUser) {
             try {
                 steamSyncService.syncUserGames(user);
                 log.info("신규 가입/재가입 유저 게임 라이브러리 최초 자동 동기화 완료: userId={}", user.getId());
             } catch (Exception e) {
-                log.warn("신규 가입 유저 최초 자동 동기화 실패 (프로필 비공개 등): userId={}, error={}", user.getId(), e.getMessage());
+                log.warn("신규 가입 유저 최초 자동 동기화 건너뜀 (API Key 누락 또는 비공개 프로필 등): userId={}, error={}", user.getId(), e.getMessage());
             }
         }
 

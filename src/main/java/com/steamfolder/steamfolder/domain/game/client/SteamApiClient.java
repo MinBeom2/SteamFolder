@@ -72,7 +72,10 @@ public class SteamApiClient {
      * 유저의 보유 게임 목록 및 플레이타임 조회 (GetOwnedGames)
      */
     public SteamOwnedGamesResponseDto.ResponseData getUserOwnedGames(String steamId) {
-        validateApiKey();
+        if (!StringUtils.hasText(apiKey)) {
+            log.warn("Steam Web API Key is missing. Skipping Steam API call for getUserOwnedGames.");
+            return new SteamOwnedGamesResponseDto.ResponseData();
+        }
 
         try {
             SteamOwnedGamesResponseDto response = webClient.get()
@@ -87,7 +90,7 @@ public class SteamApiClient {
                     .block();
 
             if (response == null || response.getResponse() == null) {
-                throw new CustomException(ErrorCode.STEAM_API_ERROR);
+                return new SteamOwnedGamesResponseDto.ResponseData();
             }
 
             return response.getResponse();
@@ -103,7 +106,10 @@ public class SteamApiClient {
      * 유저 프로필 요약 및 공개 상태 조회 (GetPlayerSummaries)
      */
     public Optional<SteamPlayerSummaryResponseDto.PlayerDto> getPlayerSummary(String steamId) {
-        validateApiKey();
+        if (!StringUtils.hasText(apiKey)) {
+            log.warn("Steam Web API Key is missing. Skipping Steam API call for getPlayerSummary.");
+            return Optional.empty();
+        }
 
         try {
             SteamPlayerSummaryResponseDto response = webClient.get()
@@ -112,7 +118,7 @@ public class SteamApiClient {
                             apiKey, steamId)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, clientResponse ->
-                            Mono.error(new CustomException(ErrorCode.STEAM_API_ERROR)))
+                            Mono.empty())
                     .bodyToMono(SteamPlayerSummaryResponseDto.class)
                     .timeout(TIMEOUT)
                     .block();
@@ -122,11 +128,9 @@ public class SteamApiClient {
             }
 
             return Optional.of(response.getResponse().getPlayers().get(0));
-        } catch (CustomException e) {
-            throw e;
         } catch (Exception e) {
-            log.error("Failed to fetch player summary from Steam API for steamId: {}", steamId, e);
-            throw new CustomException(ErrorCode.STEAM_API_ERROR);
+            log.warn("Failed to fetch player summary from Steam API for steamId: {}. Using default.", steamId, e);
+            return Optional.empty();
         }
     }
 
@@ -139,7 +143,7 @@ public class SteamApiClient {
                     .uri(steamStoreBaseUrl + "/api/appdetails?appids={appId}&l=korean", appId)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, clientResponse ->
-                            Mono.error(new CustomException(ErrorCode.STEAM_API_ERROR)))
+                            Mono.empty())
                     .bodyToMono(new ParameterizedTypeReference<Map<String, SteamAppDetailsResponseDto>>() {})
                     .timeout(TIMEOUT)
                     .block();
@@ -154,17 +158,9 @@ public class SteamApiClient {
             }
 
             return Optional.of(appDetails.getData());
-        } catch (CustomException e) {
-            throw e;
         } catch (Exception e) {
-            log.error("Failed to fetch app details from Steam Store API for appId: {}", appId, e);
-            throw new CustomException(ErrorCode.STEAM_API_ERROR);
-        }
-    }
-
-    private void validateApiKey() {
-        if (!StringUtils.hasText(apiKey)) {
-            log.warn("Steam Web API Key is missing. External Steam API calls will fail.");
+            log.warn("Failed to fetch app details from Steam Store API for appId: {}. Using fallback.", appId, e);
+            return Optional.empty();
         }
     }
 }

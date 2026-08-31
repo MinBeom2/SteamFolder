@@ -99,6 +99,38 @@ class FolderGameControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/v1/folders/{folderId}/games/batch - 게임 여러 개 일괄 추가 201 Created")
+    void batchAddGamesToFolder_Returns201() throws Exception {
+        // given
+        com.steamfolder.steamfolder.domain.folder.dto.request.BatchAddFolderGamesRequest request =
+                com.steamfolder.steamfolder.domain.folder.dto.request.BatchAddFolderGamesRequest.builder()
+                        .appIds(List.of(730L, 570L))
+                        .build();
+
+        FolderGameDetailResponse item = FolderGameDetailResponse.builder()
+                .id(100L)
+                .folderId(10L)
+                .appId(730L)
+                .name("Counter-Strike 2")
+                .positionX(0)
+                .positionY(0)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        given(folderGameService.batchAddGamesToFolder(eq(1L), eq(10L), any(com.steamfolder.steamfolder.domain.folder.dto.request.BatchAddFolderGamesRequest.class)))
+                .willReturn(List.of(item));
+
+        // when & then
+        mockMvc.perform(post("/api/v1/folders/10/games/batch")
+                        .with(authentication(testAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].appId").value(730L));
+    }
+
+    @Test
     @DisplayName("DELETE /api/v1/folders/{folderId}/games/{folderGameId} - 특정 게임 인스턴스 단일 삭제 200 OK")
     void removeFolderGame_Returns200() throws Exception {
         // when & then
@@ -156,5 +188,37 @@ class FolderGameControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.folderId").value(20L))
                 .andExpect(jsonPath("$.data.positionX").value(2));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/folders/{folderId}/games/move - 게임 여러 개 일괄 이동 200 OK")
+    void batchMoveFolderGames_Returns200() throws Exception {
+        // given
+        com.steamfolder.steamfolder.domain.folder.dto.request.BatchMoveFolderGamesRequest request =
+                com.steamfolder.steamfolder.domain.folder.dto.request.BatchMoveFolderGamesRequest.builder()
+                        .folderGameIds(List.of(100L))
+                        .targetFolderId(20L)
+                        .build();
+
+        FolderGameDetailResponse response = FolderGameDetailResponse.builder()
+                .id(200L)
+                .folderId(20L)
+                .appId(730L)
+                .name("Counter-Strike 2")
+                .positionX(0)
+                .positionY(1)
+                .build();
+
+        given(folderGameService.batchMoveFolderGames(eq(1L), eq(10L), any(com.steamfolder.steamfolder.domain.folder.dto.request.BatchMoveFolderGamesRequest.class)))
+                .willReturn(List.of(response));
+
+        // when & then
+        mockMvc.perform(patch("/api/v1/folders/10/games/move")
+                        .with(authentication(testAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].folderId").value(20L));
     }
 }

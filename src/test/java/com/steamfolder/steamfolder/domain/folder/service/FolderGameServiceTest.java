@@ -147,6 +147,38 @@ class FolderGameServiceTest {
     }
 
     @Test
+    @DisplayName("게임 여러 개 일괄 추가/복사 붙여넣기(Batch Add) 성공 검증")
+    void batchAddGamesToFolder_Success() {
+        // given
+        com.steamfolder.steamfolder.domain.folder.dto.request.BatchAddFolderGamesRequest request =
+                com.steamfolder.steamfolder.domain.folder.dto.request.BatchAddFolderGamesRequest.builder()
+                        .appIds(List.of(730L, 730L))
+                        .build();
+
+        given(folderRepository.findById(10L)).willReturn(Optional.of(testFolder));
+        given(folderGameRepository.countByFolder(testFolder)).willReturn(0L);
+        given(gameRepository.findById(730L)).willReturn(Optional.of(testGame));
+        given(folderService.findNextAvailablePosition(eq(testUser), eq(testFolder), any(Integer.class)))
+                .willReturn(new int[]{0, 0})
+                .willReturn(new int[]{1, 0});
+
+        FolderGame firstGame = FolderGame.builder().id(100L).folder(testFolder).game(testGame).positionX(0).positionY(0).build();
+        FolderGame secondGame = FolderGame.builder().id(101L).folder(testFolder).game(testGame).positionX(1).positionY(0).build();
+
+        given(folderGameRepository.save(any(FolderGame.class)))
+                .willReturn(firstGame)
+                .willReturn(secondGame);
+
+        // when
+        List<FolderGameDetailResponse> response = folderGameService.batchAddGamesToFolder(1L, 10L, request);
+
+        // then
+        assertThat(response).hasSize(2);
+        assertThat(response.get(0).getId()).isEqualTo(100L);
+        assertThat(response.get(1).getId()).isEqualTo(101L);
+    }
+
+    @Test
     @DisplayName("폴더당 최대 게임 개수(102개)를 초과하여 추가 시 MAX_FOLDER_GAME_COUNT_EXCEEDED 예외 발생")
     void addGameToFolder_ExceedsMaxCount_ThrowsException() {
         // given
@@ -252,5 +284,55 @@ class FolderGameServiceTest {
         assertThat(response.getFolderId()).isEqualTo(20L);
         assertThat(response.getPositionX()).isEqualTo(2);
         assertThat(response.getPositionY()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("폴더 간 게임 여러 개 일괄 이동(잘라내기 ➡️ 대상 폴더에 순차 빈 칸 배치) 검증")
+    void batchMoveFolderGames_Success() {
+        // given
+        Folder targetFolder = Folder.builder()
+                .id(20L)
+                .user(testUser)
+                .name("인생 갓겜")
+                .build();
+
+        com.steamfolder.steamfolder.domain.folder.dto.request.BatchMoveFolderGamesRequest request =
+                com.steamfolder.steamfolder.domain.folder.dto.request.BatchMoveFolderGamesRequest.builder()
+                        .folderGameIds(List.of(100L))
+                        .targetFolderId(20L)
+                        .build();
+
+        FolderGame sourceFolderGame = FolderGame.builder()
+                .id(100L)
+                .folder(testFolder)
+                .game(testGame)
+                .build();
+
+        given(folderRepository.findById(10L)).willReturn(Optional.of(testFolder));
+        given(folderRepository.findById(20L)).willReturn(Optional.of(targetFolder));
+        given(folderGameRepository.countByFolder(targetFolder)).willReturn(5L);
+        given(folderGameRepository.findByIdAndFolder(100L, testFolder)).willReturn(Optional.of(sourceFolderGame));
+        given(folderService.findNextAvailablePosition(eq(testUser), eq(targetFolder), any(Integer.class)))
+                .willReturn(new int[]{0, 1});
+
+        FolderGame newFolderGame = FolderGame.builder()
+                .id(200L)
+                .folder(targetFolder)
+                .game(testGame)
+                .positionX(0)
+                .positionY(1)
+                .build();
+
+        given(folderGameRepository.save(any(FolderGame.class))).willReturn(newFolderGame);
+
+        // when
+        List<FolderGameDetailResponse> response = folderGameService.batchMoveFolderGames(1L, 10L, request);
+
+        // then
+        verify(folderGameRepository).delete(sourceFolderGame);
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).getFolderId()).isEqualTo(20L);
+        assertThat(response.get(0).getPositionX()).isEqualTo(0);
+        assertThat(response.get(0).getPositionY()).isEqualTo(1);
     }
 }
