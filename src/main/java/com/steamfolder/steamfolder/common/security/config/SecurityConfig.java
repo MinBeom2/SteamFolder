@@ -38,9 +38,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. 인증/로그인 관련 엔드포인트
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        // 2. 내 쇼케이스 뷰는 인증 필요, 그 외 공개 게스트 뷰는 허용
+                        // 2. 내 쇼케이스 뷰는 인증 필요, 그 외 공개 게스트 뷰 및 공개 폴더 상세 뷰는 허용
                         .requestMatchers(HttpMethod.GET, "/api/v1/showcases/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/showcases/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/folders").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/folders/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/rankings/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/games/**").permitAll()
                         // 3. 인프라 및 시스템

@@ -176,10 +176,23 @@ public class FolderService {
 
     /**
      * 특정 폴더 상세 조회 (직속 1단계 하위 폴더 및 포함된 게임 목록)
+     * 본인 소유이거나, 소유자가 공개(isPublic=true) 프로필인 경우 비회원/타인 조회 허용
      */
     @Transactional(readOnly = true)
     public FolderResponse getFolderDetail(Long userId, Long folderId) {
-        Folder folder = findFolderByIdAndValidateOwnership(folderId, userId);
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FOLDER_NOT_FOUND));
+
+        // 1. 본인 소유 폴더인 경우 즉시 허용
+        if (userId != null && folder.getUser().getId().equals(userId)) {
+            return FolderResponse.from(folder);
+        }
+
+        // 2. 비로그인이거나 타인인 경우, 폴더 소유자의 프로필 공개 여부(isPublic) 검증
+        if (!folder.getUser().isPublic() || folder.getUser().isDeleted()) {
+            throw new CustomException(ErrorCode.FOLDER_ACCESS_DENIED);
+        }
+
         return FolderResponse.from(folder);
     }
 

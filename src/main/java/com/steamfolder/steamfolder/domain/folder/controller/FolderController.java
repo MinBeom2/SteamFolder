@@ -49,14 +49,15 @@ public class FolderController {
     }
 
     /**
-     * 특정 폴더 상세 조회 API
+     * 특정 폴더 상세 조회 API (본인 소유이거나 공개 유저의 폴더인 경우 게스트/타인 조회 허용)
      */
     @GetMapping("/{folderId}")
     public ResponseEntity<ApiResponse<FolderResponse>> getFolderDetail(
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable Long folderId
     ) {
-        FolderResponse response = folderService.getFolderDetail(principal.getUserId(), folderId);
+        Long userId = (principal != null) ? principal.getUserId() : null;
+        FolderResponse response = folderService.getFolderDetail(userId, folderId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

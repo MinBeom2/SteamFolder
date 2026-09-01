@@ -255,4 +255,76 @@ class FolderServiceTest {
         assertThat(folder.getPositionX()).isEqualTo(3);
         assertThat(folder.getPositionY()).isEqualTo(2);
     }
+
+    @Test
+    @DisplayName("폴더 상세 조회 - 본인 소유 폴더 정상 조회 검증")
+    void getFolderDetail_Owner_Success() {
+        // given
+        Folder folder = Folder.builder()
+                .id(10L)
+                .user(testUser)
+                .name("MyFolder")
+                .childFolders(new ArrayList<>())
+                .folderGames(new ArrayList<>())
+                .build();
+
+        given(folderRepository.findById(10L)).willReturn(Optional.of(folder));
+
+        // when
+        FolderResponse response = folderService.getFolderDetail(1L, 10L);
+
+        // then
+        assertThat(response.getId()).isEqualTo(10L);
+        assertThat(response.getName()).isEqualTo("MyFolder");
+    }
+
+    @Test
+    @DisplayName("폴더 상세 조회 - 비로그인 게스트 또는 타인이 공개(isPublic=true) 폴더 조회 시 정상 허용")
+    void getFolderDetail_Guest_PublicFolder_Success() {
+        // given
+        User publicUser = User.builder().id(2L).steamId("76561198000000002").username("PublicUser").isPublic(true).build();
+        Folder folder = Folder.builder()
+                .id(20L)
+                .user(publicUser)
+                .name("PublicFolder")
+                .childFolders(new ArrayList<>())
+                .folderGames(new ArrayList<>())
+                .build();
+
+        given(folderRepository.findById(20L)).willReturn(Optional.of(folder));
+
+        // when (비로그인 userId = null)
+        FolderResponse guestResponse = folderService.getFolderDetail(null, 20L);
+        // when (다른 유저 userId = 1L)
+        FolderResponse otherUserResponse = folderService.getFolderDetail(1L, 20L);
+
+        // then
+        assertThat(guestResponse.getId()).isEqualTo(20L);
+        assertThat(otherUserResponse.getId()).isEqualTo(20L);
+    }
+
+    @Test
+    @DisplayName("폴더 상세 조회 - 비로그인 게스트 또는 타인이 비공개(isPublic=false) 폴더 조회 시 FOLDER_ACCESS_DENIED 예외 발생")
+    void getFolderDetail_Guest_PrivateFolder_ThrowsException() {
+        // given
+        User privateUser = User.builder().id(3L).steamId("76561198000000003").username("PrivateUser").isPublic(false).build();
+        Folder folder = Folder.builder()
+                .id(30L)
+                .user(privateUser)
+                .name("PrivateFolder")
+                .childFolders(new ArrayList<>())
+                .folderGames(new ArrayList<>())
+                .build();
+
+        given(folderRepository.findById(30L)).willReturn(Optional.of(folder));
+
+        // when & then
+        assertThatThrownBy(() -> folderService.getFolderDetail(null, 30L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FOLDER_ACCESS_DENIED);
+
+        assertThatThrownBy(() -> folderService.getFolderDetail(1L, 30L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FOLDER_ACCESS_DENIED);
+    }
 }

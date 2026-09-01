@@ -120,6 +120,47 @@ class FolderControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/folders/{folderId} - 특정 폴더 상세 조회 200 OK")
+    void getFolderDetail_Returns200() throws Exception {
+        // given
+        FolderResponse response = FolderResponse.builder()
+                .id(10L)
+                .name("특정 폴더")
+                .depth(1)
+                .build();
+
+        given(folderService.getFolderDetail(eq(1L), eq(10L))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/folders/10")
+                        .with(authentication(testAuth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(10L))
+                .andExpect(jsonPath("$.data.name").value("특정 폴더"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/folders/{folderId} - 비로그인 게스트의 공개 폴더 조회 200 OK")
+    void getFolderDetail_Guest_Returns200() throws Exception {
+        // given
+        FolderResponse response = FolderResponse.builder()
+                .id(20L)
+                .name("공개 게스트 폴더")
+                .depth(1)
+                .build();
+
+        given(folderService.getFolderDetail(eq(null), eq(20L))).willReturn(response);
+
+        // when & then (인증 없이 요청)
+        mockMvc.perform(get("/api/v1/folders/20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(20L))
+                .andExpect(jsonPath("$.data.name").value("공개 게스트 폴더"));
+    }
+
+    @Test
     @DisplayName("PATCH /api/v1/folders/{folderId} - 폴더 정보 수정 200 OK")
     void updateFolder_Returns200() throws Exception {
         // given
