@@ -44,6 +44,12 @@ class UserControllerTest {
     private UserService userService;
 
     @MockitoBean
+    private com.steamfolder.steamfolder.domain.game.service.SteamSyncService steamSyncService;
+
+    @MockitoBean
+    private com.steamfolder.steamfolder.domain.user.repository.UserRepository userRepository;
+
+    @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
@@ -51,6 +57,7 @@ class UserControllerTest {
 
     private UserPrincipal testPrincipal;
     private UsernamePasswordAuthenticationToken testAuth;
+    private com.steamfolder.steamfolder.domain.user.entity.User testUser;
 
     @BeforeEach
     void setUp() {
@@ -60,6 +67,12 @@ class UserControllerTest {
                 .username("TestUser")
                 .build();
         testAuth = new UsernamePasswordAuthenticationToken(testPrincipal, null, testPrincipal.getAuthorities());
+
+        testUser = com.steamfolder.steamfolder.domain.user.entity.User.builder()
+                .id(1L)
+                .steamId("76561198000000001")
+                .username("TestUser")
+                .build();
     }
 
     @Test
@@ -155,5 +168,40 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("회원 탈퇴 및 연동 해제가 성공적으로 완료되었습니다."));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/me/games - 내 게임 라이브러리 커서 페이징 조회 200 OK")
+    void getMyGames_Returns200() throws Exception {
+        // given
+        com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto item =
+                com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto.builder()
+                        .appId(730L)
+                        .name("Counter-Strike 2")
+                        .playtimeForever(5000)
+                        .build();
+
+        com.steamfolder.steamfolder.common.dto.CursorPageResponseDto<com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto> pageResponse =
+                com.steamfolder.steamfolder.common.dto.CursorPageResponseDto.of(
+                        java.util.List.of(item),
+                        null,
+                        false,
+                        1L,
+                        20
+                );
+
+        given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
+        given(steamSyncService.getUserGamesWithCursor(eq(testUser), any(), eq(20)))
+                .willReturn(pageResponse);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/users/me/games")
+                        .with(authentication(testAuth))
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content[0].appId").value(730L))
+                .andExpect(jsonPath("$.data.content[0].name").value("Counter-Strike 2"))
+                .andExpect(jsonPath("$.data.totalElements").value(1L));
     }
 }

@@ -1,5 +1,6 @@
 package com.steamfolder.steamfolder.domain.game.service;
 
+import com.steamfolder.steamfolder.common.dto.CursorPageResponseDto;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.game.client.SteamApiClient;
@@ -15,6 +16,8 @@ import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -138,5 +141,37 @@ public class SteamSyncService {
                 .stream()
                 .map(UserGameResponseDto::from)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * No-Offset 커서 기반 유저 보유 게임 라이브러리 목록 페이징 조회
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponseDto<UserGameResponseDto> getUserGamesWithCursor(User user, Long cursor, int size) {
+        int pageSize = Math.min(Math.max(size, 1), 100);
+        Pageable pageable = PageRequest.of(0, pageSize + 1);
+
+        List<UserGame> userGames;
+        if (cursor == null) {
+            userGames = userGameRepository.findByUserOrderByIdDesc(user, pageable);
+        } else {
+            userGames = userGameRepository.findByUserAndIdLessThanOrderByIdDesc(user, cursor, pageable);
+        }
+
+        boolean hasNext = userGames.size() > pageSize;
+        List<UserGame> contentList = hasNext ? userGames.subList(0, pageSize) : userGames;
+
+        Long nextCursor = null;
+        if (hasNext && !contentList.isEmpty()) {
+            nextCursor = contentList.get(contentList.size() - 1).getId();
+        }
+
+        long totalCount = userGameRepository.countByUser(user);
+
+        List<UserGameResponseDto> content = contentList.stream()
+                .map(UserGameResponseDto::from)
+                .collect(Collectors.toList());
+
+        return CursorPageResponseDto.of(content, nextCursor, hasNext, totalCount, pageSize);
     }
 }

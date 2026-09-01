@@ -198,4 +198,38 @@ class SteamSyncServiceTest {
             assertThat(games.get(0).getPlaytimeForever()).isEqualTo(7200);
         }
     }
+
+    @Nested
+    @DisplayName("No-Offset 커서 기반 유저 게임 페이징 조회 (getUserGamesWithCursor)")
+    class GetUserGamesWithCursorTest {
+
+        @Test
+        @DisplayName("성공: 첫 페이지 조회 시 다음 커서 및 hasNext가 정상 계산된다.")
+        void getUserGamesWithCursor_FirstPage_Success() {
+            // given
+            Game game1 = Game.builder().appId(10L).name("Game 1").genres(List.of("Action")).build();
+            Game game2 = Game.builder().appId(20L).name("Game 2").genres(List.of("RPG")).build();
+            Game game3 = Game.builder().appId(30L).name("Game 3").genres(List.of("Strategy")).build();
+
+            UserGame ug1 = UserGame.builder().id(3L).user(testUser).game(game1).playtimeForever(100).build();
+            UserGame ug2 = UserGame.builder().id(2L).user(testUser).game(game2).playtimeForever(50).build();
+            UserGame ug3 = UserGame.builder().id(1L).user(testUser).game(game3).playtimeForever(10).build();
+
+            // size=2 요청 시 3개(size+1) 반환
+            given(userGameRepository.findByUserOrderByIdDesc(eq(testUser), any(org.springframework.data.domain.Pageable.class)))
+                    .willReturn(List.of(ug1, ug2, ug3));
+            given(userGameRepository.countByUser(testUser)).willReturn(10L);
+
+            // when
+            com.steamfolder.steamfolder.common.dto.CursorPageResponseDto<UserGameResponseDto> response =
+                    steamSyncService.getUserGamesWithCursor(testUser, null, 2);
+
+            // then
+            assertThat(response.getContent()).hasSize(2);
+            assertThat(response.isHasNext()).isTrue();
+            assertThat(response.getNextCursor()).isEqualTo(2L);
+            assertThat(response.getTotalElements()).isEqualTo(10L);
+            assertThat(response.getPageSize()).isEqualTo(2);
+        }
+    }
 }
