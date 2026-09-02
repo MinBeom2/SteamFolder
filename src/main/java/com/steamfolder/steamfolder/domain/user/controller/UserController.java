@@ -3,6 +3,8 @@ package com.steamfolder.steamfolder.domain.user.controller;
 import com.steamfolder.steamfolder.common.dto.ApiResponse;
 import com.steamfolder.steamfolder.common.security.UserPrincipal;
 import com.steamfolder.steamfolder.common.dto.CursorPageResponseDto;
+import com.steamfolder.steamfolder.common.exception.CustomException;
+import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.game.service.SteamSyncService;
 import com.steamfolder.steamfolder.domain.user.dto.request.UpdateProfileRequest;
@@ -42,8 +44,7 @@ public class UserController {
             @RequestParam(required = false, defaultValue = "20") int size
     ) {
         User user = userRepository.findById(userPrincipal.getUserId())
-                .orElseThrow(() -> new com.steamfolder.steamfolder.common.exception.CustomException(
-                        com.steamfolder.steamfolder.common.exception.ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         CursorPageResponseDto<UserGameResponseDto> response = steamSyncService.getUserGamesWithCursor(user, cursor, size);
         return ResponseEntity.ok(ApiResponse.success("내 게임 라이브러리 목록을 성공적으로 조회했습니다.", response));
