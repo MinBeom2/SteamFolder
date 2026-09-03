@@ -34,7 +34,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,6 +48,9 @@ public class SteamSyncService {
     private final GameRepository gameRepository;
     private final UserGameRepository userGameRepository;
     private final SteamSyncCooldownManager cooldownManager;
+
+    private static final long ACHIEVEMENT_CACHE_MINUTES = 60;
+    private final Map<String, GameAchievementDetailResponseDto> achievementCache = new ConcurrentHashMap<>();
 
     @Transactional
     public SyncResultResponseDto syncUserGames(User user) {
@@ -210,13 +215,39 @@ public class SteamSyncService {
     }
 
     /**
-     * 특정 게임 도전과제(업적) 온디맨드 실시간 동기화
+     * 특정 게임 도전과제(업적) 온디맨드 실시간 동기화 (60분 캐시 가드 적용)
      */
     @Transactional
-    public GameAchievementDetailResponseDto syncUserGameAchievements(User user, Long appId) {
+    public GameAchievementDetailResponseDto syncUserGameAchievements(User user, Long appId, boolean force) {
         UserGame userGame = userGameRepository.findByUserAndGame_AppId(user, appId)
                 .orElseThrow(() -> new CustomException(ErrorCode.GAME_NOT_FOUND));
 
+        String cacheKey = user.getSteamId() + ":" + appId;
+
+        // 60분 이내 이미 동기화된 이력이 있고 force가 false인 경우 스팀 API 재호출 없이 캐시 반환
+        if (!force && userGame.getAchievementsSyncedAt() != null &&
+                userGame.getAchievementsSyncedAt().plusMinutes(ACHIEVEMENT_CACHE_MINUTES).isAfter(LocalDateTime.now())) {
+
+            GameAchievementDetailResponseDto cachedDto = achievementCache.get(cacheKey);
+            if (cachedDto != null) {
+                log.info("Returning in-memory cached achievements for steamId: {}, appId: {}", user.getSteamId(), appId);
+                return cachedDto;
+            }
+
+            // 인메모리 캐시가 비어있더라도 DB에 저장된 최근 값 반환 (스팀 API 호출 차단)
+            log.info("Returning DB cached achievements for steamId: {}, appId: {}", user.getSteamId(), appId);
+            return GameAchievementDetailResponseDto.builder()
+                    .appId(appId)
+                    .gameName(userGame.getGame().getName())
+                    .totalAchievements(userGame.getTotalAchievements())
+                    .achievedAchievements(userGame.getAchievedAchievements())
+                    .achievementRate(userGame.getAchievementRate())
+                    .syncedAt(userGame.getAchievementsSyncedAt())
+                    .achievements(Collections.emptyList())
+                    .build();
+        }
+
+        // 최초 동기화 또는 60분 경과 시 스팀 API 호출
         Optional<SteamPlayerAchievementsResponseDto.PlayerStats> statsOpt =
                 steamApiClient.getPlayerAchievements(user.getSteamId(), appId);
 
@@ -244,7 +275,7 @@ public class SteamSyncService {
             userGame.updateAchievements(0, 0, null);
         }
 
-        return GameAchievementDetailResponseDto.builder()
+        GameAchievementDetailResponseDto result = GameAchievementDetailResponseDto.builder()
                 .appId(appId)
                 .gameName(userGame.getGame().getName())
                 .totalAchievements(userGame.getTotalAchievements())
@@ -253,13 +284,23 @@ public class SteamSyncService {
                 .syncedAt(userGame.getAchievementsSyncedAt())
                 .achievements(items)
                 .build();
+
+        // 60분 메모리 캐시 저장
+        achievementCache.put(cacheKey, result);
+
+        return result;
+    }
+
+    @Transactional
+    public GameAchievementDetailResponseDto syncUserGameAchievements(User user, Long appId) {
+        return syncUserGameAchievements(user, appId, false);
     }
 
     /**
-     * 특정 게임 도전과제 달성 현황 조회 (미동기화 시 자동 온디맨드 동기화)
+     * 특정 게임 도전과제 달성 현황 조회 (60분 캐시 적용)
      */
     @Transactional
     public GameAchievementDetailResponseDto getGameAchievements(User user, Long appId) {
-        return syncUserGameAchievements(user, appId);
+        return syncUserGameAchievements(user, appId, false);
     }
 }

@@ -253,7 +253,7 @@ class UserControllerTest {
                         .build();
 
         given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
-        given(steamSyncService.syncUserGameAchievements(eq(testUser), eq(1091500L)))
+        given(steamSyncService.syncUserGameAchievements(eq(testUser), eq(1091500L), eq(false)))
                 .willReturn(response);
 
         // when & then

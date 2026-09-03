@@ -73,13 +73,14 @@ public class UserController {
     @PostMapping("/me/games/{appId}/achievements/sync")
     public ResponseEntity<ApiResponse<com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto>> syncAchievements(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @PathVariable Long appId
+            @PathVariable Long appId,
+            @RequestParam(required = false, defaultValue = "false") boolean force
     ) {
         User user = userRepository.findById(userPrincipal.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto response =
-                steamSyncService.syncUserGameAchievements(user, appId);
+                steamSyncService.syncUserGameAchievements(user, appId, force);
         return ResponseEntity.ok(ApiResponse.success("게임 도전과제(업적) 동기화가 완료되었습니다.", response));
     }
 
