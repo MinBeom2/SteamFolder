@@ -132,4 +132,32 @@ class GameRepositoryTest {
         // then (삭제 확인)
         assertThat(userGameRepository.findByUser(user)).isEmpty();
     }
+
+    @Test
+    @DisplayName("UserGameSpecification 기반 DB 레벨 동적 장르 필터링 및 DB 정렬 검증")
+    void filterUserGamesWithSpecification() {
+        // given
+        User user = userRepository.save(User.builder()
+                .steamId("76561198000000003")
+                .username("SpecGamer")
+                .build());
+
+        Game game1 = gameRepository.save(Game.builder().appId(10L).name("Cyberpunk 2077").genres(List.of("Action", "RPG")).build());
+        Game game2 = gameRepository.save(Game.builder().appId(20L).name("Stardew Valley").genres(List.of("Simulation", "Indie")).build());
+        Game game3 = gameRepository.save(Game.builder().appId(30L).name("Counter-Strike 2").genres(List.of("Action", "FPS")).build());
+
+        userGameRepository.save(UserGame.builder().user(user).game(game1).playtimeForever(7200).build());
+        userGameRepository.save(UserGame.builder().user(user).game(game2).playtimeForever(3000).build());
+        userGameRepository.save(UserGame.builder().user(user).game(game3).playtimeForever(600).build());
+
+        // when (장르 Action 필터 + 가나다순 정렬)
+        var spec = com.steamfolder.steamfolder.domain.game.repository.specification.UserGameSpecification.withDynamicFilter(user, List.of("Action"));
+        var sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "game.name");
+        List<UserGame> results = userGameRepository.findAll(spec, sort);
+
+        // then
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).getGame().getName()).isEqualTo("Counter-Strike 2");
+        assertThat(results.get(1).getGame().getName()).isEqualTo("Cyberpunk 2077");
+    }
 }

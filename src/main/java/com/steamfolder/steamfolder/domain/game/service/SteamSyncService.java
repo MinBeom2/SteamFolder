@@ -5,6 +5,7 @@ import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.game.client.SteamApiClient;
 import com.steamfolder.steamfolder.domain.game.dto.response.CooldownResponseDto;
+import com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.SyncResultResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamOwnedGamesResponseDto;
@@ -13,11 +14,14 @@ import com.steamfolder.steamfolder.domain.game.entity.Game;
 import com.steamfolder.steamfolder.domain.game.entity.UserGame;
 import com.steamfolder.steamfolder.domain.game.repository.GameRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
+import com.steamfolder.steamfolder.domain.game.repository.specification.UserGameSpecification;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +29,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -173,5 +178,31 @@ public class SteamSyncService {
                 .collect(Collectors.toList());
 
         return CursorPageResponseDto.of(content, nextCursor, hasNext, totalCount, pageSize);
+    }
+
+    /**
+     * 유저 보유 게임 다중 조건(장르) 동적 필터링 및 정렬 (DB Repository 레벨 수행)
+     */
+    @Transactional(readOnly = true)
+    public FilteredGamesResponseDto filterUserGames(
+            User user,
+            List<String> genres,
+            String sort
+    ) {
+        String sortType = (sort != null) ? sort.toLowerCase().trim() : "playtime";
+        Sort sortObj = switch (sortType) {
+            case "name" -> Sort.by(Sort.Direction.ASC, "game.name");
+            case "recent" -> Sort.by(Sort.Direction.DESC, "id");
+            default -> Sort.by(Sort.Direction.DESC, "playtimeForever");
+        };
+
+        Specification<UserGame> spec = UserGameSpecification.withDynamicFilter(user, genres);
+        List<UserGame> userGames = userGameRepository.findAll(spec, sortObj);
+
+        List<UserGameResponseDto> filteredList = userGames.stream()
+                .map(UserGameResponseDto::from)
+                .collect(Collectors.toList());
+
+        return FilteredGamesResponseDto.of(filteredList);
     }
 }

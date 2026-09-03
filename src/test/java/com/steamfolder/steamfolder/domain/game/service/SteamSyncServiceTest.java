@@ -232,4 +232,69 @@ class SteamSyncServiceTest {
             assertThat(response.getPageSize()).isEqualTo(2);
         }
     }
+
+    @Nested
+    @DisplayName("보유 게임 다중 조건 동적 필터링 (filterUserGames)")
+    class FilterUserGamesTest {
+
+        private UserGame ug1;
+        private UserGame ug2;
+        private UserGame ug3;
+
+        @org.junit.jupiter.api.BeforeEach
+        void setUpFilterGames() {
+            Game game1 = Game.builder().appId(10L).name("Cyberpunk 2077").genres(List.of("Action", "RPG")).build();
+            Game game2 = Game.builder().appId(20L).name("Stardew Valley").genres(List.of("Simulation", "RPG")).build();
+            Game game3 = Game.builder().appId(30L).name("Counter-Strike 2").genres(List.of("Action", "FPS")).build();
+
+            ug1 = UserGame.builder().id(1L).user(testUser).game(game1).playtimeForever(7200).build(); // 120h
+            ug2 = UserGame.builder().id(2L).user(testUser).game(game2).playtimeForever(3000).build(); // 50h
+            ug3 = UserGame.builder().id(3L).user(testUser).game(game3).playtimeForever(600).build();  // 10h
+        }
+
+        @Test
+        @DisplayName("성공: 장르 조건(Action)으로 필터링 시 일치하는 게임만 반환")
+        void filterUserGames_ByGenre_Success() {
+            // given
+            given(userGameRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Sort.class)))
+                    .willReturn(List.of(ug1, ug3));
+
+            // when
+            var response = steamSyncService.filterUserGames(testUser, List.of("Action"), "playtime");
+
+            // then
+            assertThat(response.getTotalCount()).isEqualTo(2);
+            assertThat(response.getGames()).extracting("name").containsExactly("Cyberpunk 2077", "Counter-Strike 2");
+        }
+
+        @Test
+        @DisplayName("성공: 이름 가나다 오름차순 정렬(sort=name) 검증")
+        void filterUserGames_SortByName_Success() {
+            // given
+            given(userGameRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Sort.class)))
+                    .willReturn(List.of(ug3, ug1, ug2));
+
+            // when
+            var response = steamSyncService.filterUserGames(testUser, null, "name");
+
+            // then
+            assertThat(response.getGames()).extracting("name")
+                    .containsExactly("Counter-Strike 2", "Cyberpunk 2077", "Stardew Valley");
+        }
+
+        @Test
+        @DisplayName("성공: 플레이타임 내림차순 정렬(sort=playtime 기본값) 검증")
+        void filterUserGames_SortByPlaytime_Success() {
+            // given
+            given(userGameRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Sort.class)))
+                    .willReturn(List.of(ug1, ug2, ug3));
+
+            // when
+            var response = steamSyncService.filterUserGames(testUser, null, "playtime");
+
+            // then
+            assertThat(response.getGames()).extracting("name")
+                    .containsExactly("Cyberpunk 2077", "Stardew Valley", "Counter-Strike 2");
+        }
+    }
 }

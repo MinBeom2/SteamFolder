@@ -50,6 +50,23 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("내 게임 라이브러리 목록을 성공적으로 조회했습니다.", response));
     }
 
+    /**
+     * 보유 게임 다중 조건 동적 필터링 API
+     */
+    @GetMapping("/me/games/filter")
+    public ResponseEntity<ApiResponse<com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto>> filterMyGames(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam(required = false) java.util.List<String> genres,
+            @RequestParam(required = false, defaultValue = "playtime") String sort
+    ) {
+        User user = userRepository.findById(userPrincipal.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto response =
+                steamSyncService.filterUserGames(user, genres, sort);
+        return ResponseEntity.ok(ApiResponse.success("게임 동적 필터링 조회가 완료되었습니다.", response));
+    }
+
     @PatchMapping("/me/profile")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
             @AuthenticationPrincipal UserPrincipal userPrincipal,

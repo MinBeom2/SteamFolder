@@ -13,6 +13,8 @@ import com.steamfolder.steamfolder.domain.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -203,5 +205,36 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.data.content[0].appId").value(730L))
                 .andExpect(jsonPath("$.data.content[0].name").value("Counter-Strike 2"))
                 .andExpect(jsonPath("$.data.totalElements").value(1L));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/me/games/filter - 내 보유 게임 동적 필터링 조회 200 OK")
+    void filterMyGames_Returns200() throws Exception {
+        // given
+        com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto item =
+                com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto.builder()
+                        .appId(1091500L)
+                        .name("Cyberpunk 2077")
+                        .playtimeForever(7200)
+                        .genres(List.of("Action", "RPG"))
+                        .build();
+
+        com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto response =
+                com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto.of(List.of(item));
+
+        given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
+        given(steamSyncService.filterUserGames(eq(testUser), any(), eq("playtime")))
+                .willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/users/me/games/filter")
+                        .with(authentication(testAuth))
+                        .param("genres", "Action,RPG")
+                        .param("sort", "playtime"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalCount").value(1))
+                .andExpect(jsonPath("$.data.games[0].appId").value(1091500L))
+                .andExpect(jsonPath("$.data.games[0].name").value("Cyberpunk 2077"));
     }
 }
