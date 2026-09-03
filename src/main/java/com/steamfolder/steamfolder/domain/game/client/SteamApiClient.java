@@ -4,6 +4,7 @@ import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamAppDetailsResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamOwnedGamesResponseDto;
+import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerAchievementsResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerSummaryResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -160,6 +161,37 @@ public class SteamApiClient {
             return Optional.of(appDetails.getData());
         } catch (Exception e) {
             log.warn("Failed to fetch app details from Steam Store API for appId: {}. Using fallback.", appId, e);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * 유저의 특정 게임 도전과제(업적) 달성 현황 조회 (GetPlayerAchievements)
+     * - 게임에 도전과제가 없거나(400 에러) 비공개 프로필(403 등)인 경우 Optional.empty()로 안전하게 예외 격리
+     */
+    public Optional<SteamPlayerAchievementsResponseDto.PlayerStats> getPlayerAchievements(String steamId, Long appId) {
+        if (apiKey == null || apiKey.isBlank()) {
+            log.warn("Steam API Key is missing. Skipping getPlayerAchievements for steamId: {}, appId: {}", steamId, appId);
+            return Optional.empty();
+        }
+
+        try {
+            SteamPlayerAchievementsResponseDto response = webClient.get()
+                    .uri(steamApiBaseUrl + "/ISteamUserStats/GetPlayerAchievements/v0001/?key={apiKey}&steamid={steamId}&appid={appId}&l=korean",
+                            apiKey, steamId, appId)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse -> Mono.empty())
+                    .bodyToMono(SteamPlayerAchievementsResponseDto.class)
+                    .timeout(TIMEOUT)
+                    .block();
+
+            if (response == null || response.getPlayerStats() == null || !response.getPlayerStats().isSuccess()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(response.getPlayerStats());
+        } catch (Exception e) {
+            log.warn("Failed to fetch player achievements from Steam API for steamId: {}, appId: {}. Details: {}", steamId, appId, e.getMessage());
             return Optional.empty();
         }
     }

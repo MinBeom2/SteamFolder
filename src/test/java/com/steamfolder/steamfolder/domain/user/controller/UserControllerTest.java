@@ -237,4 +237,60 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.data.games[0].appId").value(1091500L))
                 .andExpect(jsonPath("$.data.games[0].name").value("Cyberpunk 2077"));
     }
+
+    @Test
+    @DisplayName("POST /api/v1/users/me/games/{appId}/achievements/sync - 특정 게임 도전과제 온디맨드 동기화 200 OK")
+    void syncAchievements_Returns200() throws Exception {
+        // given
+        com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto response =
+                com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto.builder()
+                        .appId(1091500L)
+                        .gameName("Cyberpunk 2077")
+                        .totalAchievements(50)
+                        .achievedAchievements(25)
+                        .achievementRate(50.0)
+                        .achievements(List.of())
+                        .build();
+
+        given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
+        given(steamSyncService.syncUserGameAchievements(eq(testUser), eq(1091500L)))
+                .willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/v1/users/me/games/1091500/achievements/sync")
+                        .with(authentication(testAuth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.appId").value(1091500L))
+                .andExpect(jsonPath("$.data.totalAchievements").value(50))
+                .andExpect(jsonPath("$.data.achievedAchievements").value(25))
+                .andExpect(jsonPath("$.data.achievementRate").value(50.0));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/me/games/{appId}/achievements - 특정 게임 도전과제 달성 상세 조회 200 OK")
+    void getAchievements_Returns200() throws Exception {
+        // given
+        com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto response =
+                com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto.builder()
+                        .appId(1091500L)
+                        .gameName("Cyberpunk 2077")
+                        .totalAchievements(50)
+                        .achievedAchievements(40)
+                        .achievementRate(80.0)
+                        .achievements(List.of())
+                        .build();
+
+        given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
+        given(steamSyncService.getGameAchievements(eq(testUser), eq(1091500L)))
+                .willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/users/me/games/1091500/achievements")
+                        .with(authentication(testAuth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.appId").value(1091500L))
+                .andExpect(jsonPath("$.data.achievementRate").value(80.0));
+    }
 }

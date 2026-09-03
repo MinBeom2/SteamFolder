@@ -180,4 +180,60 @@ class SteamApiClientTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.STEAM_API_ERROR);
     }
+
+    @Test
+    @DisplayName("Steam GetPlayerAchievements API 정상 호출 및 업적 파싱 검증")
+    void getPlayerAchievements_Success() {
+        // given
+        String jsonResponse = """
+                {
+                    "playerstats": {
+                        "steamID": "76561198000000001",
+                        "gameName": "Cyberpunk 2077",
+                        "achievements": [
+                            {
+                                "apiname": "ACH_01",
+                                "achieved": 1,
+                                "unlocktime": 1607644800
+                            },
+                            {
+                                "apiname": "ACH_02",
+                                "achieved": 0,
+                                "unlocktime": 0
+                            }
+                        ],
+                        "success": true
+                    }
+                }
+                """;
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody(jsonResponse));
+
+        // when
+        var statsOpt = steamApiClient.getPlayerAchievements("76561198000000001", 1091500L);
+
+        // then
+        assertThat(statsOpt).isPresent();
+        var stats = statsOpt.get();
+        assertThat(stats.getGameName()).isEqualTo("Cyberpunk 2077");
+        assertThat(stats.getAchievements()).hasSize(2);
+        assertThat(stats.getAchievements().get(0).getApiName()).isEqualTo("ACH_01");
+        assertThat(stats.getAchievements().get(0).getAchieved()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Steam GetPlayerAchievements 400 에러(도전과제 없음) 발생 시 Optional.empty 반환 검증")
+    void getPlayerAchievements_NoStats_ReturnsEmpty() {
+        // given
+        mockWebServer.enqueue(new MockResponse().setResponseCode(400));
+
+        // when
+        var statsOpt = steamApiClient.getPlayerAchievements("76561198000000001", 999999L);
+
+        // then
+        assertThat(statsOpt).isEmpty();
+    }
 }

@@ -7,12 +7,14 @@ import com.steamfolder.steamfolder.domain.game.dto.response.CooldownResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.SyncResultResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamOwnedGamesResponseDto;
+import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerAchievementsResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerSummaryResponseDto;
 import com.steamfolder.steamfolder.domain.game.entity.Game;
 import com.steamfolder.steamfolder.domain.game.entity.UserGame;
 import com.steamfolder.steamfolder.domain.game.repository.GameRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
+import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -295,6 +297,78 @@ class SteamSyncServiceTest {
             // then
             assertThat(response.getGames()).extracting("name")
                     .containsExactly("Cyberpunk 2077", "Stardew Valley", "Counter-Strike 2");
+        }
+    }
+
+    @Nested
+    @DisplayName("유저 게임 도전과제(업적) 실시간 동기화 (syncUserGameAchievements)")
+    class SyncUserGameAchievementsTest {
+
+        @Test
+        @DisplayName("성공: 10개 업적 중 8개 달성 시 총 개수, 달성 개수, 달성률 80.0%가 정확히 계산되어 저장된다")
+        void syncUserGameAchievements_Success() {
+            // given
+            Game game = Game.builder().appId(1091500L).name("Cyberpunk 2077").build();
+            UserGame userGame = UserGame.builder().id(1L).user(testUser).game(game).build();
+
+            given(userGameRepository.findByUserAndGame_AppId(testUser, 1091500L))
+                    .willReturn(Optional.of(userGame));
+
+            SteamPlayerAchievementsResponseDto.PlayerStats stats = new SteamPlayerAchievementsResponseDto.PlayerStats();
+            List<SteamPlayerAchievementsResponseDto.AchievementDto> dtoList = new ArrayList<>();
+            for (int i = 0; i < 8; i++) {
+                var a = new SteamPlayerAchievementsResponseDto.AchievementDto();
+                org.springframework.test.util.ReflectionTestUtils.setField(a, "apiName", "ACH_" + i);
+                org.springframework.test.util.ReflectionTestUtils.setField(a, "achieved", 1);
+                org.springframework.test.util.ReflectionTestUtils.setField(a, "unlockTime", 1600000000L);
+                dtoList.add(a);
+            }
+            for (int i = 8; i < 10; i++) {
+                var a = new SteamPlayerAchievementsResponseDto.AchievementDto();
+                org.springframework.test.util.ReflectionTestUtils.setField(a, "apiName", "ACH_" + i);
+                org.springframework.test.util.ReflectionTestUtils.setField(a, "achieved", 0);
+                org.springframework.test.util.ReflectionTestUtils.setField(a, "unlockTime", 0L);
+                dtoList.add(a);
+            }
+            org.springframework.test.util.ReflectionTestUtils.setField(stats, "achievements", dtoList);
+            org.springframework.test.util.ReflectionTestUtils.setField(stats, "success", true);
+
+            given(steamApiClient.getPlayerAchievements(testUser.getSteamId(), 1091500L))
+                    .willReturn(Optional.of(stats));
+
+            // when
+            var response = steamSyncService.syncUserGameAchievements(testUser, 1091500L);
+
+            // then
+            assertThat(response.getAppId()).isEqualTo(1091500L);
+            assertThat(response.getTotalAchievements()).isEqualTo(10);
+            assertThat(response.getAchievedAchievements()).isEqualTo(8);
+            assertThat(response.getAchievementRate()).isEqualTo(80.0);
+            assertThat(response.getAchievements()).hasSize(10);
+            assertThat(userGame.getAchievementRate()).isEqualTo(80.0);
+        }
+
+        @Test
+        @DisplayName("성공: 스팀에서 업적이 없거나 비공개인 경우 total=0, rate=null로 갱신된다")
+        void syncUserGameAchievements_NoAchievements_Success() {
+            // given
+            Game game = Game.builder().appId(20L).name("No Achievement Game").build();
+            UserGame userGame = UserGame.builder().id(2L).user(testUser).game(game).build();
+
+            given(userGameRepository.findByUserAndGame_AppId(testUser, 20L))
+                    .willReturn(Optional.of(userGame));
+            given(steamApiClient.getPlayerAchievements(testUser.getSteamId(), 20L))
+                    .willReturn(Optional.empty());
+
+            // when
+            var response = steamSyncService.syncUserGameAchievements(testUser, 20L);
+
+            // then
+            assertThat(response.getTotalAchievements()).isEqualTo(0);
+            assertThat(response.getAchievedAchievements()).isEqualTo(0);
+            assertThat(response.getAchievementRate()).isNull();
+            assertThat(userGame.getTotalAchievements()).isEqualTo(0);
+            assertThat(userGame.getAchievementRate()).isNull();
         }
     }
 }

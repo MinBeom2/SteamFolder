@@ -67,6 +67,38 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("게임 동적 필터링 조회가 완료되었습니다.", response));
     }
 
+    /**
+     * 특정 게임 도전과제(업적) 온디맨드 실시간 동기화 API
+     */
+    @PostMapping("/me/games/{appId}/achievements/sync")
+    public ResponseEntity<ApiResponse<com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto>> syncAchievements(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long appId
+    ) {
+        User user = userRepository.findById(userPrincipal.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto response =
+                steamSyncService.syncUserGameAchievements(user, appId);
+        return ResponseEntity.ok(ApiResponse.success("게임 도전과제(업적) 동기화가 완료되었습니다.", response));
+    }
+
+    /**
+     * 특정 게임 도전과제(업적) 달성 현황 및 세부 목록 조회 API
+     */
+    @GetMapping("/me/games/{appId}/achievements")
+    public ResponseEntity<ApiResponse<com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto>> getAchievements(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long appId
+    ) {
+        User user = userRepository.findById(userPrincipal.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto response =
+                steamSyncService.getGameAchievements(user, appId);
+        return ResponseEntity.ok(ApiResponse.success("게임 도전과제(업적) 조회가 완료되었습니다.", response));
+    }
+
     @PatchMapping("/me/profile")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
             @AuthenticationPrincipal UserPrincipal userPrincipal,

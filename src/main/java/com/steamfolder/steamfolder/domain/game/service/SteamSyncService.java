@@ -6,9 +6,11 @@ import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.game.client.SteamApiClient;
 import com.steamfolder.steamfolder.domain.game.dto.response.CooldownResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto;
+import com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.SyncResultResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamOwnedGamesResponseDto;
+import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerAchievementsResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerSummaryResponseDto;
 import com.steamfolder.steamfolder.domain.game.entity.Game;
 import com.steamfolder.steamfolder.domain.game.entity.UserGame;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -204,5 +207,59 @@ public class SteamSyncService {
                 .collect(Collectors.toList());
 
         return FilteredGamesResponseDto.of(filteredList);
+    }
+
+    /**
+     * 특정 게임 도전과제(업적) 온디맨드 실시간 동기화
+     */
+    @Transactional
+    public GameAchievementDetailResponseDto syncUserGameAchievements(User user, Long appId) {
+        UserGame userGame = userGameRepository.findByUserAndGame_AppId(user, appId)
+                .orElseThrow(() -> new CustomException(ErrorCode.GAME_NOT_FOUND));
+
+        Optional<SteamPlayerAchievementsResponseDto.PlayerStats> statsOpt =
+                steamApiClient.getPlayerAchievements(user.getSteamId(), appId);
+
+        List<GameAchievementDetailResponseDto.AchievementItemDto> items = new ArrayList<>();
+
+        if (statsOpt.isPresent() && statsOpt.get().getAchievements() != null && !statsOpt.get().getAchievements().isEmpty()) {
+            List<SteamPlayerAchievementsResponseDto.AchievementDto> achievements = statsOpt.get().getAchievements();
+            int total = achievements.size();
+            int achieved = (int) achievements.stream().filter(a -> a.getAchieved() == 1).count();
+            double rate = (total > 0) ? Math.round(((double) achieved / total * 100.0) * 10.0) / 10.0 : 0.0;
+
+            userGame.updateAchievements(total, achieved, rate);
+
+            items = achievements.stream()
+                    .map(a -> GameAchievementDetailResponseDto.AchievementItemDto.builder()
+                            .apiName(a.getApiName())
+                            .achieved(a.getAchieved() == 1)
+                            .unlockTime(a.getUnlockTime() != null && a.getUnlockTime() > 0
+                                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(a.getUnlockTime()), ZoneId.systemDefault())
+                                    : null)
+                            .build())
+                    .toList();
+        } else {
+            // 도전과제가 없거나(0개) 비공개 프로필인 경우
+            userGame.updateAchievements(0, 0, null);
+        }
+
+        return GameAchievementDetailResponseDto.builder()
+                .appId(appId)
+                .gameName(userGame.getGame().getName())
+                .totalAchievements(userGame.getTotalAchievements())
+                .achievedAchievements(userGame.getAchievedAchievements())
+                .achievementRate(userGame.getAchievementRate())
+                .syncedAt(userGame.getAchievementsSyncedAt())
+                .achievements(items)
+                .build();
+    }
+
+    /**
+     * 특정 게임 도전과제 달성 현황 조회 (미동기화 시 자동 온디맨드 동기화)
+     */
+    @Transactional
+    public GameAchievementDetailResponseDto getGameAchievements(User user, Long appId) {
+        return syncUserGameAchievements(user, appId);
     }
 }

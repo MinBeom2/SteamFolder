@@ -23,6 +23,9 @@ public class UserGameResponseDto {
     private String heroImage;
     private List<String> genres;
     private String developer;
+    private Integer totalAchievements;
+    private Integer achievedAchievements;
+    private Double achievementRate;
 
     public static UserGameResponseDto from(UserGame userGame) {
         return UserGameResponseDto.builder()
@@ -35,6 +38,9 @@ public class UserGameResponseDto {
                 .heroImage(userGame.getGame().getHeroImage())
                 .genres(userGame.getGame().getGenres())
                 .developer(userGame.getGame().getDeveloper())
+                .totalAchievements(userGame.getTotalAchievements())
+                .achievedAchievements(userGame.getAchievedAchievements())
+                .achievementRate(userGame.getAchievementRate())
                 .build();
     }
 }

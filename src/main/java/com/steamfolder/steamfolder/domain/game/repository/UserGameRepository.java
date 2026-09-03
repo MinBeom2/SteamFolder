@@ -18,6 +18,9 @@ public interface UserGameRepository extends JpaRepository<UserGame, Long>, JpaSp
     Optional<UserGame> findByUserAndGame(User user, Game game);
 
     @EntityGraph(attributePaths = {"game"})
+    Optional<UserGame> findByUserAndGame_AppId(User user, Long appId);
+
+    @EntityGraph(attributePaths = {"game"})
     List<UserGame> findByUserOrderByPlaytimeForeverDesc(User user);
 
     List<UserGame> findByUser(User user);

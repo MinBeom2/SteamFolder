@@ -39,11 +39,30 @@ public class UserGame extends BaseTimeEntity {
     @Column(name = "last_played_at")
     private LocalDateTime lastPlayedAt;
 
+    @Column(name = "total_achievements")
+    private Integer totalAchievements;
+
+    @Column(name = "achieved_achievements")
+    private Integer achievedAchievements;
+
+    @Column(name = "achievement_rate")
+    private Double achievementRate;
+
+    @Column(name = "achievements_synced_at")
+    private LocalDateTime achievementsSyncedAt;
+
     public void updatePlaytime(int playtimeForever, LocalDateTime lastPlayedAt) {
         this.playtimeForever = playtimeForever;
         if (lastPlayedAt != null) {
             this.lastPlayedAt = lastPlayedAt;
         }
+    }
+
+    public void updateAchievements(Integer totalAchievements, Integer achievedAchievements, Double achievementRate) {
+        this.totalAchievements = totalAchievements;
+        this.achievedAchievements = achievedAchievements;
+        this.achievementRate = achievementRate;
+        this.achievementsSyncedAt = LocalDateTime.now();
     }
 }
 
