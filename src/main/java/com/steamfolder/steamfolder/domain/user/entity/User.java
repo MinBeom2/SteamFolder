@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users", indexes = {
-        @Index(name = "idx_user_steam_id", columnList = "steam_id", unique = true)
+        @Index(name = "idx_user_steam_id", columnList = "steam_id", unique = true),
+        @Index(name = "idx_user_like_count_id", columnList = "like_count, id"),
+        @Index(name = "idx_user_is_public", columnList = "is_public")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -36,6 +38,10 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     @Column(name = "is_public", nullable = false)
     private boolean isPublic = true;
+
+    @Builder.Default
+    @Column(name = "like_count", nullable = false)
+    private int likeCount = 0;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;

@@ -30,6 +30,7 @@ public class ShowcaseResponse {
         private String username;
         private String avatarUrl;
         private String themeColor;
+        private int likeCount;
 
         @JsonProperty("isPublic")
         private boolean isPublic;
@@ -41,6 +42,7 @@ public class ShowcaseResponse {
                     .username(user.getUsername())
                     .avatarUrl(user.getAvatarUrl())
                     .themeColor(user.getThemeColor())
+                    .likeCount(user.getLikeCount())
                     .isPublic(user.isPublic())
                     .build();
         }

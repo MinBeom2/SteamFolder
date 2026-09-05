@@ -5,6 +5,7 @@ import com.steamfolder.steamfolder.common.security.UserPrincipal;
 import com.steamfolder.steamfolder.common.security.config.SecurityConfig;
 import com.steamfolder.steamfolder.common.security.jwt.JwtAuthenticationEntryPoint;
 import com.steamfolder.steamfolder.common.security.jwt.JwtTokenProvider;
+import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
 import com.steamfolder.steamfolder.domain.showcase.service.ShowcaseService;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -112,5 +114,24 @@ class ShowcaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.user.username").value("ShowcaseKing"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/showcases/{userId}/likes - 로그인 유저 쇼케이스 좋아요 토글 성공 200 OK")
+    void toggleShowcaseLike_Authenticated_Returns200() throws Exception {
+        // given
+        ShowcaseLikeResponse response = ShowcaseLikeResponse.of(2L, true, 42);
+        given(showcaseService.toggleShowcaseLike(1L, 2L)).willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/v1/showcases/2/likes")
+                        .with(authentication(testAuth))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("쇼케이스에 좋아요를 눌렀습니다."))
+                .andExpect(jsonPath("$.data.targetUserId").value(2))
+                .andExpect(jsonPath("$.data.liked").value(true))
+                .andExpect(jsonPath("$.data.totalLikeCount").value(42));
     }
 }

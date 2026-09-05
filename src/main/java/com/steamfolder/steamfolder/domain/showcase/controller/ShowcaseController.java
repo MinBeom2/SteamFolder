@@ -2,6 +2,7 @@ package com.steamfolder.steamfolder.domain.showcase.controller;
 
 import com.steamfolder.steamfolder.common.dto.ApiResponse;
 import com.steamfolder.steamfolder.common.security.UserPrincipal;
+import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
 import com.steamfolder.steamfolder.domain.showcase.service.ShowcaseService;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +39,18 @@ public class ShowcaseController {
         Long requesterUserId = principal != null ? principal.getUserId() : null;
         ShowcaseResponse response = showcaseService.getPublicShowcase(identifier, requesterUserId);
         return ResponseEntity.ok(ApiResponse.success("공개 쇼케이스를 성공적으로 조회했습니다.", response));
+    }
+
+    /**
+     * 타 유저 쇼케이스 좋아요 토글 API
+     */
+    @PostMapping("/{userId}/likes")
+    public ResponseEntity<ApiResponse<ShowcaseLikeResponse>> toggleShowcaseLike(
+            @PathVariable Long userId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        ShowcaseLikeResponse response = showcaseService.toggleShowcaseLike(principal.getUserId(), userId);
+        String message = response.isLiked() ? "쇼케이스에 좋아요를 눌렀습니다." : "쇼케이스 좋아요를 취소했습니다.";
+        return ResponseEntity.ok(ApiResponse.success(message, response));
     }
 }
