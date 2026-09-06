@@ -6,19 +6,25 @@ import com.steamfolder.steamfolder.domain.folder.dto.response.FolderResponse;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
-import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
-import com.steamfolder.steamfolder.domain.user.entity.User;
-import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
+import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseRankingItemDto;
+import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseRankingResponse;
+import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
 import com.steamfolder.steamfolder.domain.showcase.entity.ShowcaseLike;
 import com.steamfolder.steamfolder.domain.showcase.repository.ShowcaseLikeRepository;
+import com.steamfolder.steamfolder.domain.user.entity.User;
+import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -151,5 +157,98 @@ public class ShowcaseService {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
         return user;
+    }
+
+    /**
+     * No-Offset 커서 기반 인기 쇼케이스 랭킹 조회
+     * 정렬 기준: 1차 likeCount DESC, 2차 id ASC (Strict Total Order)
+     * 대상: 공개(isPublic=true) 및 미탈퇴(deletedAt IS NULL) 유저
+     * @param currentUserId 로그인 유저 ID (로그인 시 본인의 순위 및 좋아요 수를 myRanking으로 항상 반환)
+     */
+    @Transactional(readOnly = true)
+    public ShowcaseRankingResponse getShowcaseRankings(Integer cursorLikeCount, Long cursorUserId, int limit, Long currentUserId) {
+        if (limit < 1) {
+            limit = 10;
+        } else if (limit > 50) {
+            limit = 50;
+        }
+
+        boolean hasCursor = (cursorLikeCount != null && cursorUserId != null);
+        PageRequest pageRequest = PageRequest.of(0, limit + 1);
+
+        List<User> users;
+        long startRank;
+
+        if (!hasCursor) {
+            users = userRepository.findFirstPageShowcaseRankings(pageRequest);
+            startRank = 1L;
+        } else {
+            users = userRepository.findNextPageShowcaseRankings(cursorLikeCount, cursorUserId, pageRequest);
+            startRank = userRepository.countShowcasesAheadOfCursor(cursorLikeCount, cursorUserId) + 1L;
+        }
+
+        boolean hasNext = users.size() > limit;
+        List<User> pagedUsers = hasNext ? users.subList(0, limit) : users;
+
+        List<Long> userIds = pagedUsers.stream().map(User::getId).toList();
+        Map<Long, Long> gameCounts = userIds.isEmpty() ? Map.of() :
+                userGameRepository.countUserGamesByUserIds(userIds).stream()
+                        .collect(Collectors.toMap(
+                                row -> (Long) row[0],
+                                row -> (Long) row[1]
+                        ));
+
+        List<ShowcaseRankingItemDto> content = new ArrayList<>();
+        for (int i = 0; i < pagedUsers.size(); i++) {
+            User u = pagedUsers.get(i);
+            long rank = startRank + i;
+            long totalGamesCount = gameCounts.getOrDefault(u.getId(), 0L);
+
+            content.add(ShowcaseRankingItemDto.builder()
+                    .rank(rank)
+                    .userId(u.getId())
+                    .username(u.getUsername())
+                    .avatarUrl(u.getAvatarUrl())
+                    .likeCount(u.getLikeCount())
+                    .totalGamesCount(totalGamesCount)
+                    .build());
+        }
+
+        Integer nextCursorLikeCount = null;
+        Long nextCursorUserId = null;
+        if (hasNext && !pagedUsers.isEmpty()) {
+            User lastUser = pagedUsers.get(pagedUsers.size() - 1);
+            nextCursorLikeCount = lastUser.getLikeCount();
+            nextCursorUserId = lastUser.getId();
+        }
+
+        // 로그인 사용자의 본인 순위 및 좋아요 수 계산 (첫 페이지 조회 시에만 1회 계산, 무한 스크롤 시 중복 쿼리 완전 방어)
+        ShowcaseRankingItemDto myRanking = null;
+        if (!hasCursor && currentUserId != null) {
+            Optional<User> currentUserOpt = userRepository.findById(currentUserId);
+            if (currentUserOpt.isPresent() && !currentUserOpt.get().isDeleted()) {
+                User currentUser = currentUserOpt.get();
+                long myRank = userRepository.countShowcasesStrictlyAhead(currentUser.getLikeCount(), currentUser.getId()) + 1L;
+                long myGamesCount = userGameRepository.countByUser(currentUser);
+
+                myRanking = ShowcaseRankingItemDto.builder()
+                        .rank(myRank)
+                        .userId(currentUser.getId())
+                        .username(currentUser.getUsername())
+                        .avatarUrl(currentUser.getAvatarUrl())
+                        .likeCount(currentUser.getLikeCount())
+                        .totalGamesCount(myGamesCount)
+                        .build();
+            }
+        }
+
+        return ShowcaseRankingResponse.of(
+                content,
+                myRanking,
+                nextCursorLikeCount,
+                nextCursorUserId,
+                hasNext,
+                limit
+        );
     }
 }

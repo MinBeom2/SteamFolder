@@ -1,0 +1,20 @@
+package com.steamfolder.steamfolder.domain.showcase.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ShowcaseRankingItemDto {
+
+    private long rank;
+    private Long userId;
+    private String username;
+    private String avatarUrl;
+    private int likeCount;
+    private long totalGamesCount;
+}
