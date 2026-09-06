@@ -3,7 +3,6 @@ package com.steamfolder.steamfolder.domain.showcase.service;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
-import com.steamfolder.steamfolder.domain.folder.repository.FolderGameRepository;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
@@ -40,9 +39,6 @@ class ShowcaseServiceTest {
 
     @Mock
     private FolderRepository folderRepository;
-
-    @Mock
-    private FolderGameRepository folderGameRepository;
 
     @Mock
     private UserGameRepository userGameRepository;

@@ -1,6 +1,5 @@
 package com.steamfolder.steamfolder.domain.game.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.steamfolder.steamfolder.common.exception.GlobalExceptionHandler;
 import com.steamfolder.steamfolder.common.security.UserPrincipal;
 import com.steamfolder.steamfolder.common.security.config.SecurityConfig;
@@ -40,9 +39,6 @@ class SteamControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockitoBean
     private SteamSyncService steamSyncService;

@@ -32,7 +32,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,7 +57,8 @@ public class SteamSyncService {
         cooldownManager.validateCooldown(user.getSteamId());
 
         // 2. 유저 프로필 및 게임 목록 공개 상태 검증
-        Optional<SteamPlayerSummaryResponseDto.PlayerDto> summaryOpt = steamApiClient.getPlayerSummary(user.getSteamId());
+        Optional<SteamPlayerSummaryResponseDto.PlayerDto> summaryOpt = steamApiClient
+                .getPlayerSummary(user.getSteamId());
         if (summaryOpt.isPresent() && !summaryOpt.get().isPublic()) {
             log.warn("User {} profile is private (communityvisibilitystate: {})",
                     user.getSteamId(), summaryOpt.get().getCommunityVisibilityState());
@@ -67,9 +67,10 @@ public class SteamSyncService {
 
         // 3. 스팀 서버에서 보유 게임 목록 수신
         SteamOwnedGamesResponseDto.ResponseData ownedGamesData = steamApiClient.getUserOwnedGames(user.getSteamId());
-        List<SteamOwnedGamesResponseDto.SteamGameDto> games = (ownedGamesData != null && ownedGamesData.getGames() != null)
-                ? ownedGamesData.getGames()
-                : Collections.emptyList();
+        List<SteamOwnedGamesResponseDto.SteamGameDto> games = (ownedGamesData != null
+                && ownedGamesData.getGames() != null)
+                        ? ownedGamesData.getGames()
+                        : Collections.emptyList();
 
         if (games.isEmpty() && summaryOpt.isPresent() && !summaryOpt.get().isPublic()) {
             throw new CustomException(ErrorCode.STEAM_PROFILE_PRIVATE);
@@ -80,7 +81,8 @@ public class SteamSyncService {
 
         for (SteamOwnedGamesResponseDto.SteamGameDto steamGame : games) {
             Long appId = steamGame.getAppId();
-            if (appId == null) continue;
+            if (appId == null)
+                continue;
 
             // Game 마스터 엔티티 생성 또는 조회
             Game game = gameRepository.findById(appId).orElseGet(() -> {
@@ -106,7 +108,8 @@ public class SteamSyncService {
             int playtime = steamGame.getPlaytimeForever();
             LocalDateTime lastPlayedAt = null;
             if (steamGame.getRtimeLastPlayed() != null && steamGame.getRtimeLastPlayed() > 0) {
-                lastPlayedAt = LocalDateTime.ofInstant(Instant.ofEpochSecond(steamGame.getRtimeLastPlayed()), ZoneId.systemDefault());
+                lastPlayedAt = LocalDateTime.ofInstant(Instant.ofEpochSecond(steamGame.getRtimeLastPlayed()),
+                        ZoneId.systemDefault());
             }
 
             Optional<UserGame> existingUserGame = userGameRepository.findByUserAndGame(user, game);
@@ -195,8 +198,7 @@ public class SteamSyncService {
     public FilteredGamesResponseDto filterUserGames(
             User user,
             List<String> genres,
-            String sort
-    ) {
+            String sort) {
         String sortType = (sort != null) ? sort.toLowerCase().trim() : "playtime";
         Sort sortObj = switch (sortType) {
             case "name" -> Sort.by(Sort.Direction.ASC, "game.name");
@@ -226,11 +228,13 @@ public class SteamSyncService {
 
         // 60분 이내 이미 동기화된 이력이 있고 force가 false인 경우 스팀 API 재호출 없이 캐시 반환
         if (!force && userGame.getAchievementsSyncedAt() != null &&
-                userGame.getAchievementsSyncedAt().plusMinutes(ACHIEVEMENT_CACHE_MINUTES).isAfter(LocalDateTime.now())) {
+                userGame.getAchievementsSyncedAt().plusMinutes(ACHIEVEMENT_CACHE_MINUTES)
+                        .isAfter(LocalDateTime.now())) {
 
             GameAchievementDetailResponseDto cachedDto = achievementCache.get(cacheKey);
             if (cachedDto != null) {
-                log.info("Returning in-memory cached achievements for steamId: {}, appId: {}", user.getSteamId(), appId);
+                log.info("Returning in-memory cached achievements for steamId: {}, appId: {}", user.getSteamId(),
+                        appId);
                 return cachedDto;
             }
 
@@ -248,12 +252,13 @@ public class SteamSyncService {
         }
 
         // 최초 동기화 또는 60분 경과 시 스팀 API 호출
-        Optional<SteamPlayerAchievementsResponseDto.PlayerStats> statsOpt =
-                steamApiClient.getPlayerAchievements(user.getSteamId(), appId);
+        Optional<SteamPlayerAchievementsResponseDto.PlayerStats> statsOpt = steamApiClient
+                .getPlayerAchievements(user.getSteamId(), appId);
 
         List<GameAchievementDetailResponseDto.AchievementItemDto> items = new ArrayList<>();
 
-        if (statsOpt.isPresent() && statsOpt.get().getAchievements() != null && !statsOpt.get().getAchievements().isEmpty()) {
+        if (statsOpt.isPresent() && statsOpt.get().getAchievements() != null
+                && !statsOpt.get().getAchievements().isEmpty()) {
             List<SteamPlayerAchievementsResponseDto.AchievementDto> achievements = statsOpt.get().getAchievements();
             int total = achievements.size();
             int achieved = (int) achievements.stream().filter(a -> a.getAchieved() == 1).count();
@@ -266,7 +271,8 @@ public class SteamSyncService {
                             .apiName(a.getApiName())
                             .achieved(a.getAchieved() == 1)
                             .unlockTime(a.getUnlockTime() != null && a.getUnlockTime() > 0
-                                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(a.getUnlockTime()), ZoneId.systemDefault())
+                                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(a.getUnlockTime()),
+                                            ZoneId.systemDefault())
                                     : null)
                             .build())
                     .toList();

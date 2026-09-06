@@ -58,7 +58,7 @@ class FolderRepositoryTest {
                 .build());
 
         // 2. 하위 자식 폴더 생성 (자유 격자 배치: FPS는 (0, 0), RPG는 빈 공간 건너뛰고 (3, 0)에 배치)
-        Folder childFolder1 = folderRepository.save(Folder.builder()
+        folderRepository.save(Folder.builder()
                 .user(user)
                 .parentFolder(rootFolder)
                 .name("FPS 명작")
@@ -68,7 +68,7 @@ class FolderRepositoryTest {
                 .positionY(0)
                 .build());
 
-        Folder childFolder2 = folderRepository.save(Folder.builder()
+        folderRepository.save(Folder.builder()
                 .user(user)
                 .parentFolder(rootFolder)
                 .name("RPG 컬렉션")
@@ -124,7 +124,7 @@ class FolderRepositoryTest {
                 .positionY(0)
                 .build());
 
-        FolderGame folderGame2 = folderGameRepository.save(FolderGame.builder()
+        folderGameRepository.save(FolderGame.builder()
                 .folder(folder)
                 .game(game2)
                 .positionX(2)
@@ -216,21 +216,21 @@ class FolderRepositoryTest {
         Game game = gameRepository.save(Game.builder().appId(730L).name("CS2").build());
 
         // 동일 게임을 (0, 0), (1, 0), (2, 0)에 3개 복제 배치
-        FolderGame copy1 = folderGameRepository.save(FolderGame.builder()
+        folderGameRepository.save(FolderGame.builder()
                 .folder(folder)
                 .game(game)
                 .positionX(0)
                 .positionY(0)
                 .build());
 
-        FolderGame copy2 = folderGameRepository.save(FolderGame.builder()
+        folderGameRepository.save(FolderGame.builder()
                 .folder(folder)
                 .game(game)
                 .positionX(1)
                 .positionY(0)
                 .build());
 
-        FolderGame copy3 = folderGameRepository.save(FolderGame.builder()
+        folderGameRepository.save(FolderGame.builder()
                 .folder(folder)
                 .game(game)
                 .positionX(2)

@@ -1,6 +1,5 @@
 package com.steamfolder.steamfolder.domain.showcase.service;
 
-import com.steamfolder.steamfolder.domain.showcase.entity.ShowcaseLike;
 import com.steamfolder.steamfolder.domain.showcase.repository.ShowcaseLikeRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
@@ -89,14 +88,15 @@ class ShowcaseConcurrencyTest {
         }
 
         startLatch.countDown(); // 동시 출발 신호
-        doneLatch.await();      // 30개 스레드 완료 대기
+        doneLatch.await(); // 30개 스레드 완료 대기
         executorService.shutdown();
 
         // then
         User refreshedTarget = userRepository.findById(targetUser.getId()).orElseThrow();
         long actualLikeEntityCount = showcaseLikeRepository.countByTargetUser(refreshedTarget);
 
-        // Lost Update 방어 검증: 실제 생성된 ShowcaseLike 엔티티 수와 User의 likeCount 컬럼이 정확히 30으로 일치해야 함
+        // Lost Update 방어 검증: 실제 생성된 ShowcaseLike 엔티티 수와 User의 likeCount 컬럼이 정확히 30으로
+        // 일치해야 함
         assertThat(refreshedTarget.getLikeCount()).isEqualTo(threadCount);
         assertThat(actualLikeEntityCount).isEqualTo((long) threadCount);
     }
