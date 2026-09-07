@@ -3,6 +3,7 @@ package com.steamfolder.steamfolder.domain.showcase.service;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseRankingItemDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseRankingResponse;
+import com.steamfolder.steamfolder.domain.showcase.repository.ShowcaseLikeRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,6 +34,9 @@ class ShowcaseRankingServiceTest {
 
     @Mock
     private UserGameRepository userGameRepository;
+
+    @Mock
+    private ShowcaseLikeRepository showcaseLikeRepository;
 
     @Test
     @DisplayName("첫 페이지 조회 시 1위부터 순위가 매겨지고 다음 페이지 커서가 정상 계산된다 (비로그인 myRanking == null).")
@@ -180,5 +185,32 @@ class ShowcaseRankingServiceTest {
         assertThat(response.isHasNext()).isFalse();
         assertThat(response.getNextCursorLikeCount()).isNull();
         assertThat(response.getNextCursorUserId()).isNull();
+    }
+
+    @Test
+    @DisplayName("로그인 유저가 랭킹 조회 시 좋아요한 쇼케이스는 isLiked=true, 아니면 false로 정확히 세팅된다.")
+    void getShowcaseRankings_withCurrentUserId_setsIsLikedProperly() {
+        // given
+        User u1 = User.builder().id(10L).username("LikedUser").likeCount(100).build();
+        User u2 = User.builder().id(20L).username("UnlikedUser").likeCount(80).build();
+
+        given(userRepository.findFirstPageShowcaseRankings(PageRequest.of(0, 3)))
+                .willReturn(List.of(u1, u2));
+        given(userGameRepository.countUserGamesByUserIds(List.of(10L, 20L)))
+                .willReturn(Collections.emptyList());
+
+        // 99L 유저는 10L 유저의 쇼케이스만 좋아요한 상태
+        given(showcaseLikeRepository.findTargetUserIdsByUserIdAndTargetUserIdIn(99L, List.of(10L, 20L)))
+                .willReturn(Set.of(10L));
+
+        // when (currentUserId = 99L)
+        ShowcaseRankingResponse response = showcaseService.getShowcaseRankings(null, null, 2, 99L);
+
+        // then
+        assertThat(response.getContent()).hasSize(2);
+        assertThat(response.getContent().get(0).getUserId()).isEqualTo(10L);
+        assertThat(response.getContent().get(0).isLiked()).isTrue();
+        assertThat(response.getContent().get(1).getUserId()).isEqualTo(20L);
+        assertThat(response.getContent().get(1).isLiked()).isFalse();
     }
 }

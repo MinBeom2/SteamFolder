@@ -1,7 +1,9 @@
 package com.steamfolder.steamfolder.domain.showcase.controller;
 
 import com.steamfolder.steamfolder.common.dto.ApiResponse;
+import com.steamfolder.steamfolder.common.dto.CursorPageResponseDto;
 import com.steamfolder.steamfolder.common.security.UserPrincipal;
+import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
 import com.steamfolder.steamfolder.domain.showcase.service.ShowcaseService;
@@ -26,6 +28,20 @@ public class ShowcaseController {
     ) {
         ShowcaseResponse response = showcaseService.getMyShowcase(principal.getUserId());
         return ResponseEntity.ok(ApiResponse.success("내 쇼케이스를 성공적으로 조회했습니다.", response));
+    }
+
+    /**
+     * 내가 좋아요 누른 쇼케이스 목록 조회 API (No-Offset 커서 페이징)
+     */
+    @GetMapping("/me/likes")
+    public ResponseEntity<ApiResponse<CursorPageResponseDto<LikedShowcaseResponseDto>>> getMyLikedShowcases(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        CursorPageResponseDto<LikedShowcaseResponseDto> response =
+                showcaseService.getMyLikedShowcases(principal.getUserId(), cursor, size);
+        return ResponseEntity.ok(ApiResponse.success("내가 좋아요 누른 쇼케이스 목록을 성공적으로 조회했습니다.", response));
     }
 
     /**

@@ -1,10 +1,12 @@
 package com.steamfolder.steamfolder.domain.showcase.controller;
 
+import com.steamfolder.steamfolder.common.dto.CursorPageResponseDto;
 import com.steamfolder.steamfolder.common.exception.GlobalExceptionHandler;
 import com.steamfolder.steamfolder.common.security.UserPrincipal;
 import com.steamfolder.steamfolder.common.security.config.SecurityConfig;
 import com.steamfolder.steamfolder.common.security.jwt.JwtAuthenticationEntryPoint;
 import com.steamfolder.steamfolder.common.security.jwt.JwtTokenProvider;
+import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
 import com.steamfolder.steamfolder.domain.showcase.service.ShowcaseService;
@@ -87,6 +89,41 @@ class ShowcaseControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.user.username").value("ShowcaseKing"))
                 .andExpect(jsonPath("$.data.stats.totalFolders").value(3));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/showcases/me/likes - 내가 좋아요 누른 쇼케이스 목록 조회 200 OK")
+    void getMyLikedShowcases_Returns200() throws Exception {
+        // given
+        LikedShowcaseResponseDto item = LikedShowcaseResponseDto.builder()
+                .likeId(10L)
+                .userId(2L)
+                .steamId("76561198000000002")
+                .username("LikedFriend")
+                .avatarUrl("https://avatar.jpg")
+                .themeColor("#1A1B26")
+                .likeCount(5)
+                .totalGamesCount(25L)
+                .isLiked(true)
+                .likedAt(java.time.LocalDateTime.now())
+                .build();
+
+        CursorPageResponseDto<LikedShowcaseResponseDto> response =
+                CursorPageResponseDto.of(List.of(item), null, false, 1L, 20);
+
+        given(showcaseService.getMyLikedShowcases(eq(1L), any(), eq(20))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/showcases/me/likes")
+                        .with(authentication(testAuth))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("내가 좋아요 누른 쇼케이스 목록을 성공적으로 조회했습니다."))
+                .andExpect(jsonPath("$.data.content[0].userId").value(2))
+                .andExpect(jsonPath("$.data.content[0].username").value("LikedFriend"))
+                .andExpect(jsonPath("$.data.content[0].isLiked").value(true))
+                .andExpect(jsonPath("$.data.totalElements").value(1));
     }
 
     @Test

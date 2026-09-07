@@ -1,10 +1,12 @@
 package com.steamfolder.steamfolder.domain.showcase.service;
 
+import com.steamfolder.steamfolder.common.dto.CursorPageResponseDto;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
+import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
 import com.steamfolder.steamfolder.domain.showcase.entity.ShowcaseLike;
@@ -18,13 +20,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -108,6 +114,23 @@ class ShowcaseServiceTest {
         // then
         assertThat(response.getUser().getSteamId()).isEqualTo("76561198000000001");
         assertThat(response.getUser().isPublic()).isTrue();
+        assertThat(response.getUser().isLiked()).isFalse();
+    }
+
+    @Test
+    @DisplayName("로그인 유저가 타인의 공개 쇼케이스 조회 시 좋아요 여부(isLiked)가 true로 정확히 반환된다")
+    void getPublicShowcase_WithRequester_Liked_ReturnsIsLikedTrue() {
+        // given
+        given(userRepository.findBySteamId("76561198000000001")).willReturn(Optional.of(testUser));
+        given(folderRepository.findByUserAndParentFolderIsNullOrderByPositionYAscPositionXAsc(testUser))
+                .willReturn(List.of(rootFolder));
+        given(showcaseLikeRepository.existsByUser_IdAndTargetUser_Id(99L, 1L)).willReturn(true);
+
+        // when
+        ShowcaseResponse response = showcaseService.getPublicShowcase("76561198000000001", 99L);
+
+        // then
+        assertThat(response.getUser().isLiked()).isTrue();
     }
 
     @Test
@@ -233,5 +256,78 @@ class ShowcaseServiceTest {
         assertThatThrownBy(() -> showcaseService.toggleShowcaseLike(1L, 999L))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("내가 좋아요 누른 쇼케이스 첫 페이지 조회 성공 (No-Offset 페이징 및 DTO 매핑 검증)")
+    void getMyLikedShowcases_firstPage_success() {
+        // given
+        User target1 = User.builder().id(10L).steamId("76561198000000010").username("Gamer1").likeCount(15).build();
+        User target2 = User.builder().id(20L).steamId("76561198000000020").username("Gamer2").likeCount(30).build();
+
+        ShowcaseLike like1 = ShowcaseLike.builder().id(100L).user(testUser).targetUser(target1).build();
+        ShowcaseLike like2 = ShowcaseLike.builder().id(90L).user(testUser).targetUser(target2).build();
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
+        given(showcaseLikeRepository.findFirstPageLikedShowcases(eq(testUser), any(Pageable.class)))
+                .willReturn(List.of(like1, like2));
+        List<Object[]> gameCounts1 = java.util.Arrays.asList(
+                new Object[]{10L, 50L},
+                new Object[]{20L, 120L}
+        );
+        given(userGameRepository.countUserGamesByUserIds(List.of(10L, 20L)))
+                .willReturn(gameCounts1);
+        given(showcaseLikeRepository.countActiveLikedShowcasesByUser(testUser)).willReturn(2L);
+
+        // when
+        CursorPageResponseDto<LikedShowcaseResponseDto> response =
+                showcaseService.getMyLikedShowcases(1L, null, 2);
+
+        // then
+        assertThat(response.getContent()).hasSize(2);
+        assertThat(response.getTotalElements()).isEqualTo(2L);
+        assertThat(response.isHasNext()).isFalse();
+
+        LikedShowcaseResponseDto item1 = response.getContent().get(0);
+        assertThat(item1.getLikeId()).isEqualTo(100L);
+        assertThat(item1.getUserId()).isEqualTo(10L);
+        assertThat(item1.getUsername()).isEqualTo("Gamer1");
+        assertThat(item1.getTotalGamesCount()).isEqualTo(50L);
+        assertThat(item1.isLiked()).isTrue();
+
+        LikedShowcaseResponseDto item2 = response.getContent().get(1);
+        assertThat(item2.getLikeId()).isEqualTo(90L);
+        assertThat(item2.getUserId()).isEqualTo(20L);
+        assertThat(item2.getUsername()).isEqualTo("Gamer2");
+        assertThat(item2.getTotalGamesCount()).isEqualTo(120L);
+        assertThat(item2.isLiked()).isTrue();
+    }
+
+    @Test
+    @DisplayName("내가 좋아요 누른 쇼케이스 다음 페이지 커서 조회 성공")
+    void getMyLikedShowcases_withCursor_success() {
+        // given
+        User target3 = User.builder().id(30L).steamId("76561198000000030").username("Gamer3").likeCount(5).build();
+        ShowcaseLike like3 = ShowcaseLike.builder().id(50L).user(testUser).targetUser(target3).build();
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
+        given(showcaseLikeRepository.findNextPageLikedShowcases(eq(testUser), eq(90L), any(Pageable.class)))
+                .willReturn(List.of(like3));
+        List<Object[]> gameCounts2 = java.util.Collections.singletonList(
+                new Object[]{30L, 10L}
+        );
+        given(userGameRepository.countUserGamesByUserIds(List.of(30L)))
+                .willReturn(gameCounts2);
+        given(showcaseLikeRepository.countActiveLikedShowcasesByUser(testUser)).willReturn(3L);
+
+        // when
+        CursorPageResponseDto<LikedShowcaseResponseDto> response =
+                showcaseService.getMyLikedShowcases(1L, 90L, 2);
+
+        // then
+        assertThat(response.getContent()).hasSize(1);
+        assertThat(response.getContent().get(0).getUserId()).isEqualTo(30L);
+        assertThat(response.getContent().get(0).getLikeId()).isEqualTo(50L);
+        assertThat(response.isHasNext()).isFalse();
     }
 }

@@ -1,11 +1,13 @@
 package com.steamfolder.steamfolder.domain.showcase.service;
 
+import com.steamfolder.steamfolder.common.dto.CursorPageResponseDto;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.folder.dto.response.FolderResponse;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
+import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseRankingItemDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseRankingResponse;
@@ -17,6 +19,7 @@ import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -104,10 +108,19 @@ public class ShowcaseService {
             }
         }
 
-        return buildShowcaseResponse(targetUser);
+        boolean isLiked = false;
+        if (requesterUserId != null) {
+            isLiked = showcaseLikeRepository.existsByUser_IdAndTargetUser_Id(requesterUserId, targetUser.getId());
+        }
+
+        return buildShowcaseResponse(targetUser, isLiked);
     }
 
     private ShowcaseResponse buildShowcaseResponse(User user) {
+        return buildShowcaseResponse(user, false);
+    }
+
+    private ShowcaseResponse buildShowcaseResponse(User user, boolean isLiked) {
         // 1. 루트 폴더 목록 조회 (2D 격자 정렬)
         List<Folder> rootFolders = folderRepository.findByUserAndParentFolderIsNullOrderByPositionYAscPositionXAsc(user);
         List<FolderResponse> folderResponses = rootFolders.stream()
@@ -132,7 +145,7 @@ public class ShowcaseService {
                 .build();
 
         return ShowcaseResponse.builder()
-                .user(ShowcaseResponse.ShowcaseUserDto.from(user))
+                .user(ShowcaseResponse.ShowcaseUserDto.from(user, isLiked))
                 .stats(stats)
                 .rootFolders(folderResponses)
                 .build();
@@ -198,11 +211,16 @@ public class ShowcaseService {
                                 row -> (Long) row[1]
                         ));
 
+        Set<Long> likedTargetUserIds = (currentUserId != null && !userIds.isEmpty())
+                ? showcaseLikeRepository.findTargetUserIdsByUserIdAndTargetUserIdIn(currentUserId, userIds)
+                : Set.of();
+
         List<ShowcaseRankingItemDto> content = new ArrayList<>();
         for (int i = 0; i < pagedUsers.size(); i++) {
             User u = pagedUsers.get(i);
             long rank = startRank + i;
             long totalGamesCount = gameCounts.getOrDefault(u.getId(), 0L);
+            boolean isLiked = likedTargetUserIds.contains(u.getId());
 
             content.add(ShowcaseRankingItemDto.builder()
                     .rank(rank)
@@ -211,6 +229,7 @@ public class ShowcaseService {
                     .avatarUrl(u.getAvatarUrl())
                     .likeCount(u.getLikeCount())
                     .totalGamesCount(totalGamesCount)
+                    .isLiked(isLiked)
                     .build());
         }
 
@@ -238,6 +257,7 @@ public class ShowcaseService {
                         .avatarUrl(currentUser.getAvatarUrl())
                         .likeCount(currentUser.getLikeCount())
                         .totalGamesCount(myGamesCount)
+                        .isLiked(false)
                         .build();
             }
         }
@@ -250,5 +270,68 @@ public class ShowcaseService {
                 hasNext,
                 limit
         );
+    }
+
+    /**
+     * 내가 좋아요를 누른 쇼케이스 목록 조회 (No-Offset 커서 페이징)
+     * 대상: 탈퇴하지 않고(deletedAt IS NULL) 공개 상태(isPublic = true)인 유저의 쇼케이스만 노출
+     * 정렬: 최근 좋아요 누른 순서 (ShowcaseLike id DESC)
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponseDto<LikedShowcaseResponseDto> getMyLikedShowcases(Long userId, Long cursor, int size) {
+        if (size < 1) {
+            size = 20;
+        } else if (size > 50) {
+            size = 50;
+        }
+
+        User user = findUserById(userId);
+        Pageable pageable = PageRequest.of(0, size + 1);
+
+        List<ShowcaseLike> likes = (cursor == null)
+                ? showcaseLikeRepository.findFirstPageLikedShowcases(user, pageable)
+                : showcaseLikeRepository.findNextPageLikedShowcases(user, cursor, pageable);
+
+        boolean hasNext = likes.size() > size;
+        List<ShowcaseLike> pagedLikes = hasNext ? likes.subList(0, size) : likes;
+
+        List<Long> targetUserIds = pagedLikes.stream()
+                .map(sl -> sl.getTargetUser().getId())
+                .toList();
+
+        Map<Long, Long> gameCounts = targetUserIds.isEmpty() ? Map.of() :
+                userGameRepository.countUserGamesByUserIds(targetUserIds).stream()
+                        .collect(Collectors.toMap(
+                                row -> (Long) row[0],
+                                row -> (Long) row[1]
+                        ));
+
+        List<LikedShowcaseResponseDto> content = pagedLikes.stream()
+                .map(sl -> {
+                    User target = sl.getTargetUser();
+                    long gamesCount = gameCounts.getOrDefault(target.getId(), 0L);
+                    return LikedShowcaseResponseDto.builder()
+                            .likeId(sl.getId())
+                            .userId(target.getId())
+                            .steamId(target.getSteamId())
+                            .username(target.getUsername())
+                            .avatarUrl(target.getAvatarUrl())
+                            .themeColor(target.getThemeColor())
+                            .likeCount(target.getLikeCount())
+                            .totalGamesCount(gamesCount)
+                            .isLiked(true)
+                            .likedAt(sl.getCreatedAt())
+                            .build();
+                })
+                .toList();
+
+        Long nextCursor = null;
+        if (hasNext && !pagedLikes.isEmpty()) {
+            nextCursor = pagedLikes.get(pagedLikes.size() - 1).getId();
+        }
+
+        long totalElements = showcaseLikeRepository.countActiveLikedShowcasesByUser(user);
+
+        return CursorPageResponseDto.of(content, nextCursor, hasNext, totalElements, size);
     }
 }

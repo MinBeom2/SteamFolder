@@ -35,7 +35,10 @@ public class ShowcaseResponse {
         @JsonProperty("isPublic")
         private boolean isPublic;
 
-        public static ShowcaseUserDto from(User user) {
+        @JsonProperty("isLiked")
+        private boolean isLiked;
+
+        public static ShowcaseUserDto from(User user, boolean isLiked) {
             return ShowcaseUserDto.builder()
                     .id(user.getId())
                     .steamId(user.getSteamId())
@@ -44,7 +47,12 @@ public class ShowcaseResponse {
                     .themeColor(user.getThemeColor())
                     .likeCount(user.getLikeCount())
                     .isPublic(user.isPublic())
+                    .isLiked(isLiked)
                     .build();
+        }
+
+        public static ShowcaseUserDto from(User user) {
+            return from(user, false);
         }
     }
 
