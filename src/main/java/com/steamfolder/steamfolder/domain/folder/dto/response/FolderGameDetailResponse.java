@@ -26,6 +26,9 @@ public class FolderGameDetailResponse {
     private List<String> genres;
     private Integer playtimeForever;
     private LocalDateTime lastPlayedAt;
+    private Integer totalAchievements;
+    private Integer achievedAchievements;
+    private Double achievementRate;
     private LocalDateTime createdAt;
 
     public static FolderGameDetailResponse from(FolderGame folderGame) {
@@ -44,6 +47,9 @@ public class FolderGameDetailResponse {
                 .genres(folderGame.getGame().getGenres())
                 .playtimeForever(userGame != null ? userGame.getPlaytimeForever() : null)
                 .lastPlayedAt(userGame != null ? userGame.getLastPlayedAt() : null)
+                .totalAchievements(userGame != null ? userGame.getTotalAchievements() : null)
+                .achievedAchievements(userGame != null ? userGame.getAchievedAchievements() : null)
+                .achievementRate(userGame != null ? userGame.getAchievementRate() : null)
                 .createdAt(folderGame.getCreatedAt())
                 .build();
     }

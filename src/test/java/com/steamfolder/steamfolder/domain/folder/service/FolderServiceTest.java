@@ -8,8 +8,11 @@ import com.steamfolder.steamfolder.domain.folder.dto.request.UpdateFolderRequest
 import com.steamfolder.steamfolder.domain.folder.dto.request.UpdatePositionsRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.response.FolderResponse;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
+import com.steamfolder.steamfolder.domain.folder.entity.FolderGame;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderGameRepository;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
+import com.steamfolder.steamfolder.domain.game.entity.Game;
+import com.steamfolder.steamfolder.domain.game.entity.UserGame;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
@@ -21,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -281,6 +285,63 @@ class FolderServiceTest {
         // then
         assertThat(response.getId()).isEqualTo(10L);
         assertThat(response.getName()).isEqualTo("MyFolder");
+    }
+
+    @Test
+    @DisplayName("폴더 상세 조회 - 게임의 플레이타임 및 도전과제(업적 달성률) 정보가 정상 매핑됨")
+    void getFolderDetail_MapsPlaytimeAndAchievements_Success() {
+        // given
+        Game game = Game.builder()
+                .appId(1091500L)
+                .name("Cyberpunk 2077")
+                .headerImage("https://cdn.example.com/header.jpg")
+                .genres(List.of("RPG", "Action"))
+                .build();
+
+        Folder folder = Folder.builder()
+                .id(10L)
+                .user(testUser)
+                .name("RPG Folder")
+                .childFolders(new ArrayList<>())
+                .folderGames(new ArrayList<>())
+                .build();
+
+        FolderGame folderGame = FolderGame.builder()
+                .id(1L)
+                .folder(folder)
+                .game(game)
+                .positionX(0)
+                .positionY(0)
+                .build();
+
+        folder.getFolderGames().add(folderGame);
+
+        LocalDateTime lastPlayed = LocalDateTime.of(2026, 9, 1, 12, 0);
+        UserGame userGame = UserGame.builder()
+                .user(testUser)
+                .game(game)
+                .playtimeForever(3600)
+                .lastPlayedAt(lastPlayed)
+                .totalAchievements(50)
+                .achievedAchievements(25)
+                .achievementRate(50.0)
+                .build();
+
+        given(folderRepository.findById(10L)).willReturn(Optional.of(folder));
+        given(userGameRepository.findByUser(testUser)).willReturn(List.of(userGame));
+
+        // when
+        FolderResponse response = folderService.getFolderDetail(1L, 10L);
+
+        // then
+        assertThat(response.getGames()).hasSize(1);
+        FolderResponse.FolderGameDto gameDto = response.getGames().get(0);
+        assertThat(gameDto.getAppId()).isEqualTo(1091500L);
+        assertThat(gameDto.getPlaytimeForever()).isEqualTo(3600);
+        assertThat(gameDto.getLastPlayedAt()).isEqualTo(lastPlayed);
+        assertThat(gameDto.getTotalAchievements()).isEqualTo(50);
+        assertThat(gameDto.getAchievedAchievements()).isEqualTo(25);
+        assertThat(gameDto.getAchievementRate()).isEqualTo(50.0);
     }
 
     @Test

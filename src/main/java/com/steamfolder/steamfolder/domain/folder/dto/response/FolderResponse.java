@@ -75,6 +75,9 @@ public class FolderResponse {
         private List<String> genres;
         private Integer playtimeForever;
         private LocalDateTime lastPlayedAt;
+        private Integer totalAchievements;
+        private Integer achievedAchievements;
+        private Double achievementRate;
     }
 
     /**
@@ -103,6 +106,9 @@ public class FolderResponse {
                                 .genres(fg.getGame().getGenres())
                                 .playtimeForever(ug != null ? ug.getPlaytimeForever() : null)
                                 .lastPlayedAt(ug != null ? ug.getLastPlayedAt() : null)
+                                .totalAchievements(ug != null ? ug.getTotalAchievements() : null)
+                                .achievedAchievements(ug != null ? ug.getAchievedAchievements() : null)
+                                .achievementRate(ug != null ? ug.getAchievementRate() : null)
                                 .build();
                     })
                     .toList();
@@ -174,6 +180,9 @@ public class FolderResponse {
                                 .genres(fg.getGame().getGenres())
                                 .playtimeForever(ug != null ? ug.getPlaytimeForever() : null)
                                 .lastPlayedAt(ug != null ? ug.getLastPlayedAt() : null)
+                                .totalAchievements(ug != null ? ug.getTotalAchievements() : null)
+                                .achievedAchievements(ug != null ? ug.getAchievedAchievements() : null)
+                                .achievementRate(ug != null ? ug.getAchievementRate() : null)
                                 .build();
                     })
                     .toList();
