@@ -38,6 +38,16 @@ public class ShowcaseResponse {
         @JsonProperty("isLiked")
         private boolean isLiked;
 
+        @JsonProperty("isPublic")
+        public boolean isPublic() {
+            return isPublic;
+        }
+
+        @JsonProperty("isLiked")
+        public boolean isLiked() {
+            return isLiked;
+        }
+
         public static ShowcaseUserDto from(User user, boolean isLiked) {
             return ShowcaseUserDto.builder()
                     .id(user.getId())

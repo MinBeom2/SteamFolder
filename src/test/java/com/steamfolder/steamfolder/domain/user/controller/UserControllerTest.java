@@ -99,7 +99,8 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1L))
                 .andExpect(jsonPath("$.data.username").value("TestUser"))
-                .andExpect(jsonPath("$.data.isPublic").value(true));
+                .andExpect(jsonPath("$.data.isPublic").value(true))
+                .andExpect(jsonPath("$.data.public").doesNotExist());
     }
 
     @Test
@@ -155,7 +156,8 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.isPublic").value(false));
+                .andExpect(jsonPath("$.data.isPublic").value(false))
+                .andExpect(jsonPath("$.data.public").doesNotExist());
     }
 
     @Test

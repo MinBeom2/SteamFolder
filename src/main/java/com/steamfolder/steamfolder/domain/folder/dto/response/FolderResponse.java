@@ -31,6 +31,11 @@ public class FolderResponse {
     @JsonProperty("isOpen")
     private boolean isOpen;
 
+    @JsonProperty("isOpen")
+    public boolean isOpen() {
+        return isOpen;
+    }
+
     private Long parentFolderId;
     private int gameCount;
     private int childFolderCount;

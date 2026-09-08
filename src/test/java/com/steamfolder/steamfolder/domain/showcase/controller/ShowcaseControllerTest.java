@@ -88,6 +88,9 @@ class ShowcaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.user.username").value("ShowcaseKing"))
+                .andExpect(jsonPath("$.data.user.isPublic").value(true))
+                .andExpect(jsonPath("$.data.user.public").doesNotExist())
+                .andExpect(jsonPath("$.data.user.liked").doesNotExist())
                 .andExpect(jsonPath("$.data.stats.totalFolders").value(3));
     }
 
@@ -123,6 +126,7 @@ class ShowcaseControllerTest {
                 .andExpect(jsonPath("$.data.content[0].userId").value(2))
                 .andExpect(jsonPath("$.data.content[0].username").value("LikedFriend"))
                 .andExpect(jsonPath("$.data.content[0].isLiked").value(true))
+                .andExpect(jsonPath("$.data.content[0].liked").doesNotExist())
                 .andExpect(jsonPath("$.data.totalElements").value(1));
     }
 

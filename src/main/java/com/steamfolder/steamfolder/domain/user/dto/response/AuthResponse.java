@@ -18,4 +18,9 @@ public class AuthResponse {
 
     @JsonProperty("isNewUser")
     private final boolean isNewUser;
+
+    @JsonProperty("isNewUser")
+    public boolean isNewUser() {
+        return isNewUser;
+    }
 }

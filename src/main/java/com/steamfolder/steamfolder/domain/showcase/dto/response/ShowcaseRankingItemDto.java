@@ -24,4 +24,14 @@ public class ShowcaseRankingItemDto {
 
     @JsonProperty("isPublic")
     private boolean isPublic;
+
+    @JsonProperty("isLiked")
+    public boolean isLiked() {
+        return isLiked;
+    }
+
+    @JsonProperty("isPublic")
+    public boolean isPublic() {
+        return isPublic;
+    }
 }

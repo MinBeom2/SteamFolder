@@ -27,4 +27,9 @@ public class LikedShowcaseResponseDto {
     private boolean isLiked;
 
     private LocalDateTime likedAt;
+
+    @JsonProperty("isLiked")
+    public boolean isLiked() {
+        return isLiked;
+    }
 }

@@ -23,6 +23,11 @@ public class UserResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
+    @JsonProperty("isPublic")
+    public boolean isPublic() {
+        return isPublic;
+    }
+
     public static UserResponse from(User user) {
         return UserResponse.builder()
                 .id(user.getId())
