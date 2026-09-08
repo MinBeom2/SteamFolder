@@ -247,6 +247,8 @@ public class SteamSyncService {
                     .achievedAchievements(userGame.getAchievedAchievements())
                     .achievementRate(userGame.getAchievementRate())
                     .syncedAt(userGame.getAchievementsSyncedAt())
+                    .playtimeForever(userGame.getPlaytimeForever())
+                    .lastPlayedAt(userGame.getLastPlayedAt())
                     .achievements(Collections.emptyList())
                     .build();
         }
@@ -288,6 +290,8 @@ public class SteamSyncService {
                 .achievedAchievements(userGame.getAchievedAchievements())
                 .achievementRate(userGame.getAchievementRate())
                 .syncedAt(userGame.getAchievementsSyncedAt())
+                .playtimeForever(userGame.getPlaytimeForever())
+                .lastPlayedAt(userGame.getLastPlayedAt())
                 .achievements(items)
                 .build();
 

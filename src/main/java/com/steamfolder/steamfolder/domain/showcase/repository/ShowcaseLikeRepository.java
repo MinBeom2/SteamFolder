@@ -27,18 +27,18 @@ public interface ShowcaseLikeRepository extends JpaRepository<ShowcaseLike, Long
     Set<Long> findTargetUserIdsByUserIdAndTargetUserIdIn(@Param("userId") Long userId, @Param("targetUserIds") List<Long> targetUserIds);
 
     @Query("SELECT COUNT(sl) FROM ShowcaseLike sl " +
-           "WHERE sl.user = :user AND sl.targetUser.deletedAt IS NULL AND sl.targetUser.isPublic = true")
+           "WHERE sl.user = :user AND sl.targetUser.deletedAt IS NULL")
     long countActiveLikedShowcasesByUser(@Param("user") User user);
 
     @Query("SELECT sl FROM ShowcaseLike sl " +
            "JOIN FETCH sl.targetUser tu " +
-           "WHERE sl.user = :user AND tu.deletedAt IS NULL AND tu.isPublic = true " +
+           "WHERE sl.user = :user AND tu.deletedAt IS NULL " +
            "ORDER BY sl.id DESC")
     List<ShowcaseLike> findFirstPageLikedShowcases(@Param("user") User user, Pageable pageable);
 
     @Query("SELECT sl FROM ShowcaseLike sl " +
            "JOIN FETCH sl.targetUser tu " +
-           "WHERE sl.user = :user AND sl.id < :cursor AND tu.deletedAt IS NULL AND tu.isPublic = true " +
+           "WHERE sl.user = :user AND sl.id < :cursor AND tu.deletedAt IS NULL " +
            "ORDER BY sl.id DESC")
     List<ShowcaseLike> findNextPageLikedShowcases(@Param("user") User user, @Param("cursor") Long cursor, Pageable pageable);
 }

@@ -1,6 +1,7 @@
 package com.steamfolder.steamfolder.domain.folder.dto.response;
 
 import com.steamfolder.steamfolder.domain.folder.entity.FolderGame;
+import com.steamfolder.steamfolder.domain.game.entity.UserGame;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,9 +24,15 @@ public class FolderGameDetailResponse {
     private int positionX;
     private int positionY;
     private List<String> genres;
+    private Integer playtimeForever;
+    private LocalDateTime lastPlayedAt;
     private LocalDateTime createdAt;
 
     public static FolderGameDetailResponse from(FolderGame folderGame) {
+        return from(folderGame, null);
+    }
+
+    public static FolderGameDetailResponse from(FolderGame folderGame, UserGame userGame) {
         return FolderGameDetailResponse.builder()
                 .id(folderGame.getId())
                 .folderId(folderGame.getFolder().getId())
@@ -35,6 +42,8 @@ public class FolderGameDetailResponse {
                 .positionX(folderGame.getPositionX())
                 .positionY(folderGame.getPositionY())
                 .genres(folderGame.getGame().getGenres())
+                .playtimeForever(userGame != null ? userGame.getPlaytimeForever() : null)
+                .lastPlayedAt(userGame != null ? userGame.getLastPlayedAt() : null)
                 .createdAt(folderGame.getCreatedAt())
                 .build();
     }

@@ -11,6 +11,8 @@ import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.entity.FolderGame;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderGameRepository;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
+import com.steamfolder.steamfolder.domain.game.entity.UserGame;
+import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,6 +39,7 @@ public class FolderService {
     private final FolderRepository folderRepository;
     private final FolderGameRepository folderGameRepository;
     private final UserRepository userRepository;
+    private final UserGameRepository userGameRepository;
 
     /**
      * 폴더 생성 (2D 격자 좌표 지정 또는 자동 빈 칸 탐색)
@@ -183,17 +188,19 @@ public class FolderService {
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new CustomException(ErrorCode.FOLDER_NOT_FOUND));
 
-        // 1. 본인 소유 폴더인 경우 즉시 허용
-        if (userId != null && folder.getUser().getId().equals(userId)) {
-            return FolderResponse.from(folder);
+        // 1. 본인 소유가 아닌 경우, 탈퇴 유저인 경우에만 접근 차단 (비공개 유저라도 URL 링크 접근 시 조회 허용)
+        if (userId == null || !folder.getUser().getId().equals(userId)) {
+            if (folder.getUser().isDeleted()) {
+                throw new CustomException(ErrorCode.FOLDER_ACCESS_DENIED);
+            }
         }
 
-        // 2. 비로그인이거나 타인인 경우, 폴더 소유자의 프로필 공개 여부(isPublic) 검증
-        if (!folder.getUser().isPublic() || folder.getUser().isDeleted()) {
-            throw new CustomException(ErrorCode.FOLDER_ACCESS_DENIED);
-        }
+        // 2. 소유자의 UserGame 목록을 조회하여 appId 기준 매핑 (플레이타임 & 최근 플레이 일시 제공)
+        List<UserGame> userGames = userGameRepository.findByUser(folder.getUser());
+        Map<Long, UserGame> userGameMap = userGames.stream()
+                .collect(Collectors.toMap(ug -> ug.getGame().getAppId(), ug -> ug, (a, b) -> a));
 
-        return FolderResponse.from(folder);
+        return FolderResponse.from(folder, userGameMap);
     }
 
     /**

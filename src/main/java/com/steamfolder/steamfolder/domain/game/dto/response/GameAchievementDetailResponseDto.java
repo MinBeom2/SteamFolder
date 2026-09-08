@@ -20,6 +20,8 @@ public class GameAchievementDetailResponseDto {
     private Integer achievedAchievements;
     private Double achievementRate;
     private LocalDateTime syncedAt;
+    private Integer playtimeForever;
+    private LocalDateTime lastPlayedAt;
     private List<AchievementItemDto> achievements;
 
     @Getter

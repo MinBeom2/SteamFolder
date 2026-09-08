@@ -21,7 +21,11 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class ShowcaseRankingServiceTest {
@@ -147,7 +151,41 @@ class ShowcaseRankingServiceTest {
         assertThat(response.getMyRanking().getUserId()).isEqualTo(99L);
         assertThat(response.getMyRanking().getUsername()).isEqualTo("MyShowcase");
         assertThat(response.getMyRanking().getLikeCount()).isEqualTo(15);
-        assertThat(response.getMyRanking().getTotalGamesCount()).isEqualTo(12L);
+        assertThat(response.getMyRanking().isPublic()).isTrue();
+    }
+
+    @Test
+    @DisplayName("로그인 유저가 비공개(isPublic = false) 상태인 경우 myRanking의 rank는 null이고 isPublic은 false로 반환되며 순위 쿼리는 호출되지 않는다.")
+    void getShowcaseRankings_withPrivateCurrentUserId_returnsMyRankingWithNullRank() {
+        // given
+        User u1 = User.builder().id(10L).username("Top1").likeCount(500).build();
+        given(userRepository.findFirstPageShowcaseRankings(PageRequest.of(0, 3)))
+                .willReturn(List.of(u1));
+        given(userGameRepository.countUserGamesByUserIds(List.of(10L)))
+                .willReturn(Collections.emptyList());
+
+        User myPrivateUser = User.builder()
+                .id(99L)
+                .username("PrivateShowcase")
+                .avatarUrl("https://my-avatar.jpg")
+                .likeCount(5)
+                .isPublic(false)
+                .build();
+
+        given(userRepository.findById(99L)).willReturn(Optional.of(myPrivateUser));
+        given(userGameRepository.countByUser(myPrivateUser)).willReturn(7L);
+
+        // when
+        ShowcaseRankingResponse response = showcaseService.getShowcaseRankings(null, null, 2, 99L);
+
+        // then
+        assertThat(response.getMyRanking()).isNotNull();
+        assertThat(response.getMyRanking().getRank()).isNull();
+        assertThat(response.getMyRanking().isPublic()).isFalse();
+        assertThat(response.getMyRanking().getLikeCount()).isEqualTo(5);
+        assertThat(response.getMyRanking().getTotalGamesCount()).isEqualTo(7L);
+        // countShowcasesStrictlyAhead 순위 쿼리는 절대 호출되지 않아야 함 (0회 호출)
+        then(userRepository).should(never()).countShowcasesStrictlyAhead(anyInt(), anyLong());
     }
 
     @Test

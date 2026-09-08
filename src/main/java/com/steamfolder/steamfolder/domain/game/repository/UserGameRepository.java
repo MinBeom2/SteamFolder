@@ -23,6 +23,7 @@ public interface UserGameRepository extends JpaRepository<UserGame, Long>, JpaSp
     @EntityGraph(attributePaths = {"game"})
     List<UserGame> findByUserOrderByPlaytimeForeverDesc(User user);
 
+    @EntityGraph(attributePaths = {"game"})
     List<UserGame> findByUser(User user);
 
     boolean existsByUserAndGame(User user, Game game);

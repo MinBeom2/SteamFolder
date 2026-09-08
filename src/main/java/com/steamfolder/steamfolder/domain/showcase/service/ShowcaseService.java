@@ -6,6 +6,7 @@ import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.folder.dto.response.FolderResponse;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
+import com.steamfolder.steamfolder.domain.game.entity.UserGame;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
@@ -101,13 +102,6 @@ public class ShowcaseService {
     public ShowcaseResponse getPublicShowcase(String identifier, Long requesterUserId) {
         User targetUser = findUserByIdentifier(identifier);
 
-        // 비공개 쇼케이스 검증: 비공개 상태이고 본인이 아니면 접근 차단
-        if (!targetUser.isPublic()) {
-            if (requesterUserId == null || !requesterUserId.equals(targetUser.getId())) {
-                throw new CustomException(ErrorCode.HANDLE_ACCESS_DENIED);
-            }
-        }
-
         boolean isLiked = false;
         if (requesterUserId != null) {
             isLiked = showcaseLikeRepository.existsByUser_IdAndTargetUser_Id(requesterUserId, targetUser.getId());
@@ -121,10 +115,15 @@ public class ShowcaseService {
     }
 
     private ShowcaseResponse buildShowcaseResponse(User user, boolean isLiked) {
+        // 소유자의 UserGame 목록을 조회하여 appId 기준 매핑 (플레이타임 & 최근 플레이 일시 매핑)
+        List<UserGame> userGames = userGameRepository.findByUser(user);
+        Map<Long, UserGame> userGameMap = userGames.stream()
+                .collect(Collectors.toMap(ug -> ug.getGame().getAppId(), ug -> ug, (a, b) -> a));
+
         // 1. 루트 폴더 목록 조회 (2D 격자 정렬)
         List<Folder> rootFolders = folderRepository.findByUserAndParentFolderIsNullOrderByPositionYAscPositionXAsc(user);
         List<FolderResponse> folderResponses = rootFolders.stream()
-                .map(FolderResponse::from)
+                .map(folder -> FolderResponse.from(folder, userGameMap))
                 .toList();
 
         // 2. 쇼케이스 요약 통계 집계
@@ -230,6 +229,7 @@ public class ShowcaseService {
                     .likeCount(u.getLikeCount())
                     .totalGamesCount(totalGamesCount)
                     .isLiked(isLiked)
+                    .isPublic(true)
                     .build());
         }
 
@@ -247,7 +247,9 @@ public class ShowcaseService {
             Optional<User> currentUserOpt = userRepository.findById(currentUserId);
             if (currentUserOpt.isPresent() && !currentUserOpt.get().isDeleted()) {
                 User currentUser = currentUserOpt.get();
-                long myRank = userRepository.countShowcasesStrictlyAhead(currentUser.getLikeCount(), currentUser.getId()) + 1L;
+                Long myRank = currentUser.isPublic()
+                        ? userRepository.countShowcasesStrictlyAhead(currentUser.getLikeCount(), currentUser.getId()) + 1L
+                        : null;
                 long myGamesCount = userGameRepository.countByUser(currentUser);
 
                 myRanking = ShowcaseRankingItemDto.builder()
@@ -258,6 +260,7 @@ public class ShowcaseService {
                         .likeCount(currentUser.getLikeCount())
                         .totalGamesCount(myGamesCount)
                         .isLiked(false)
+                        .isPublic(currentUser.isPublic())
                         .build();
             }
         }

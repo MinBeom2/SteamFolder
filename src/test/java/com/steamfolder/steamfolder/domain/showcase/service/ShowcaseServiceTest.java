@@ -134,8 +134,8 @@ class ShowcaseServiceTest {
     }
 
     @Test
-    @DisplayName("비공개 유저 쇼케이스를 타인 또는 비로그인 게스트가 조회 시 HANDLE_ACCESS_DENIED 예외 발생")
-    void getPublicShowcase_PrivateUser_ByOther_ThrowsException() {
+    @DisplayName("비공개(isPublic=false) 유저 쇼케이스라도 URL 링크/식별자 직접 접근 시 정상 조회 허용 검증")
+    void getPublicShowcase_PrivateUser_ByOther_Success() {
         // given
         User privateUser = User.builder()
                 .id(2L)
@@ -145,11 +145,34 @@ class ShowcaseServiceTest {
                 .build();
 
         given(userRepository.findBySteamId("76561198000000002")).willReturn(Optional.of(privateUser));
+        given(folderRepository.findByUserAndParentFolderIsNullOrderByPositionYAscPositionXAsc(privateUser))
+                .willReturn(List.of());
+
+        // when
+        ShowcaseResponse response = showcaseService.getPublicShowcase("76561198000000002", null);
+
+        // then
+        assertThat(response.getUser().getUsername()).isEqualTo("PrivateGamer");
+        assertThat(response.getUser().isPublic()).isFalse();
+    }
+
+    @Test
+    @DisplayName("탈퇴한 계정의 쇼케이스 조회 시 USER_NOT_FOUND 예외 발생")
+    void getPublicShowcase_DeletedUser_ThrowsException() {
+        // given
+        User deletedUser = User.builder()
+                .id(3L)
+                .steamId("76561198000000003")
+                .username("DeletedGamer")
+                .deletedAt(java.time.LocalDateTime.now())
+                .build();
+
+        given(userRepository.findBySteamId("76561198000000003")).willReturn(Optional.of(deletedUser));
 
         // when & then
-        assertThatThrownBy(() -> showcaseService.getPublicShowcase("76561198000000002", null))
+        assertThatThrownBy(() -> showcaseService.getPublicShowcase("76561198000000003", null))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.HANDLE_ACCESS_DENIED);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
     }
 
     @Test

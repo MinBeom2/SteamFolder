@@ -379,10 +379,13 @@ class SteamSyncServiceTest {
         void syncUserGameAchievements_Within60Minutes_ReturnsCached_WithoutCallingSteamApi() {
             // given
             Game game = Game.builder().appId(1091500L).name("Cyberpunk 2077").build();
+            LocalDateTime lastPlayed = LocalDateTime.now().minusDays(1);
             UserGame userGame = UserGame.builder()
                     .id(1L)
                     .user(testUser)
                     .game(game)
+                    .playtimeForever(7200)
+                    .lastPlayedAt(lastPlayed)
                     .totalAchievements(50)
                     .achievedAchievements(40)
                     .achievementRate(80.0)
@@ -400,6 +403,8 @@ class SteamSyncServiceTest {
             assertThat(response.getTotalAchievements()).isEqualTo(50);
             assertThat(response.getAchievedAchievements()).isEqualTo(40);
             assertThat(response.getAchievementRate()).isEqualTo(80.0);
+            assertThat(response.getPlaytimeForever()).isEqualTo(7200);
+            assertThat(response.getLastPlayedAt()).isEqualTo(lastPlayed);
 
             // 스팀 외부 API 호출이 0회여야 함 (캐시 방어 성공)
             verify(steamApiClient, never()).getPlayerAchievements(anyString(), anyLong());

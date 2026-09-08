@@ -10,6 +10,7 @@ import com.steamfolder.steamfolder.domain.folder.dto.response.FolderResponse;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderGameRepository;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
+import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +45,9 @@ class FolderServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserGameRepository userGameRepository;
 
     private User testUser;
 
@@ -269,6 +273,7 @@ class FolderServiceTest {
                 .build();
 
         given(folderRepository.findById(10L)).willReturn(Optional.of(folder));
+        given(userGameRepository.findByUser(testUser)).willReturn(List.of());
 
         // when
         FolderResponse response = folderService.getFolderDetail(1L, 10L);
@@ -292,6 +297,7 @@ class FolderServiceTest {
                 .build();
 
         given(folderRepository.findById(20L)).willReturn(Optional.of(folder));
+        given(userGameRepository.findByUser(publicUser)).willReturn(List.of());
 
         // when (비로그인 userId = null)
         FolderResponse guestResponse = folderService.getFolderDetail(null, 20L);
@@ -304,8 +310,8 @@ class FolderServiceTest {
     }
 
     @Test
-    @DisplayName("폴더 상세 조회 - 비로그인 게스트 또는 타인이 비공개(isPublic=false) 폴더 조회 시 FOLDER_ACCESS_DENIED 예외 발생")
-    void getFolderDetail_Guest_PrivateFolder_ThrowsException() {
+    @DisplayName("폴더 상세 조회 - 비로그인 게스트 또는 타인이 비공개(isPublic=false) 폴더라도 URL 링크 접근 시 정상 허용")
+    void getFolderDetail_Guest_PrivateFolder_Success() {
         // given
         User privateUser = User.builder().id(3L).steamId("76561198000000003").username("PrivateUser").isPublic(false).build();
         Folder folder = Folder.builder()
@@ -317,13 +323,42 @@ class FolderServiceTest {
                 .build();
 
         given(folderRepository.findById(30L)).willReturn(Optional.of(folder));
+        given(userGameRepository.findByUser(privateUser)).willReturn(List.of());
+
+        // when (비로그인 userId = null)
+        FolderResponse guestResponse = folderService.getFolderDetail(null, 30L);
+        // when (다른 유저 userId = 1L)
+        FolderResponse otherUserResponse = folderService.getFolderDetail(1L, 30L);
+
+        // then
+        assertThat(guestResponse.getId()).isEqualTo(30L);
+        assertThat(otherUserResponse.getId()).isEqualTo(30L);
+    }
+
+    @Test
+    @DisplayName("폴더 상세 조회 - 탈퇴한 계정의 폴더 조회 시 FOLDER_ACCESS_DENIED 예외 발생")
+    void getFolderDetail_DeletedUser_ThrowsException() {
+        // given
+        User deletedUser = User.builder()
+                .id(4L)
+                .steamId("76561198000000004")
+                .username("DeletedUser")
+                .deletedAt(java.time.LocalDateTime.now())
+                .build();
+        Folder folder = Folder.builder()
+                .id(40L)
+                .user(deletedUser)
+                .name("DeletedFolder")
+                .build();
+
+        given(folderRepository.findById(40L)).willReturn(Optional.of(folder));
 
         // when & then
-        assertThatThrownBy(() -> folderService.getFolderDetail(null, 30L))
+        assertThatThrownBy(() -> folderService.getFolderDetail(null, 40L))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FOLDER_ACCESS_DENIED);
 
-        assertThatThrownBy(() -> folderService.getFolderDetail(1L, 30L))
+        assertThatThrownBy(() -> folderService.getFolderDetail(1L, 40L))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FOLDER_ACCESS_DENIED);
     }

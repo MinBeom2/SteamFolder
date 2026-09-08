@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ShowcaseRankingItemDto {
 
-    private long rank;
+    private Long rank;
     private Long userId;
     private String username;
     private String avatarUrl;
@@ -21,4 +21,7 @@ public class ShowcaseRankingItemDto {
 
     @JsonProperty("isLiked")
     private boolean isLiked;
+
+    @JsonProperty("isPublic")
+    private boolean isPublic;
 }
