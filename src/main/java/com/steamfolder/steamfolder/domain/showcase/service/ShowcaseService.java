@@ -6,8 +6,10 @@ import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.folder.dto.response.FolderResponse;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
+import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.game.entity.UserGame;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
+import com.steamfolder.steamfolder.domain.game.service.SteamSyncService;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseRankingItemDto;
@@ -40,6 +42,7 @@ public class ShowcaseService {
     private final FolderRepository folderRepository;
     private final UserGameRepository userGameRepository;
     private final ShowcaseLikeRepository showcaseLikeRepository;
+    private final SteamSyncService steamSyncService;
 
     /**
      * 타 유저 쇼케이스 좋아요 토글 (누르면 좋아요 +1, 다시 누르면 취소 -1)
@@ -108,6 +111,15 @@ public class ShowcaseService {
         }
 
         return buildShowcaseResponse(targetUser, isLiked);
+    }
+
+    /**
+     * 게스트 및 타 유저를 위한 공개 쇼케이스 보유 게임 목록 페이징 조회 (No-Offset 커서)
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponseDto<UserGameResponseDto> getPublicShowcaseGames(String identifier, Long cursor, int size) {
+        User targetUser = findUserByIdentifier(identifier);
+        return steamSyncService.getUserGamesWithCursor(targetUser, cursor, size);
     }
 
     private ShowcaseResponse buildShowcaseResponse(User user) {

@@ -6,6 +6,7 @@ import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
+import com.steamfolder.steamfolder.domain.game.service.SteamSyncService;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
@@ -51,6 +52,9 @@ class ShowcaseServiceTest {
 
     @Mock
     private ShowcaseLikeRepository showcaseLikeRepository;
+
+    @Mock
+    private SteamSyncService steamSyncService;
 
     private User testUser;
     private Folder rootFolder;

@@ -10,7 +10,7 @@ import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.entity.FolderGame;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderGameRepository;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
-import com.steamfolder.steamfolder.domain.game.client.SteamApiClient;
+import com.steamfolder.steamfolder.domain.game.service.GameMetadataEnrichmentService;
 import com.steamfolder.steamfolder.domain.game.entity.Game;
 import com.steamfolder.steamfolder.domain.game.repository.GameRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
@@ -51,7 +51,7 @@ class FolderGameServiceTest {
     private FolderService folderService;
 
     @Mock
-    private SteamApiClient steamApiClient;
+    private GameMetadataEnrichmentService gameMetadataEnrichmentService;
 
     private User testUser;
     private Folder testFolder;

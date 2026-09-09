@@ -12,10 +12,9 @@ import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.entity.FolderGame;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderGameRepository;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
-import com.steamfolder.steamfolder.domain.game.client.SteamApiClient;
-import com.steamfolder.steamfolder.domain.game.dto.steam.SteamAppDetailsResponseDto;
 import com.steamfolder.steamfolder.domain.game.entity.Game;
 import com.steamfolder.steamfolder.domain.game.repository.GameRepository;
+import com.steamfolder.steamfolder.domain.game.service.GameMetadataEnrichmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,7 +36,7 @@ public class FolderGameService {
     private final FolderGameRepository folderGameRepository;
     private final GameRepository gameRepository;
     private final FolderService folderService;
-    private final SteamApiClient steamApiClient;
+    private final GameMetadataEnrichmentService gameMetadataEnrichmentService;
 
     /**
      * 폴더 내 게임 추가 및 복사 (동일 게임 다중 복제 지원, 최대 100개 제한, 2D 스마트 빈 칸 자동 탐색)
@@ -52,6 +51,9 @@ public class FolderGameService {
         }
 
         Game game = findOrCreateGame(request.getAppId());
+        if (game.getGenres() == null || game.getGenres().isEmpty()) {
+            gameMetadataEnrichmentService.enrichGameMetadataAsync(List.of(game.getAppId()));
+        }
 
         // 2. 2D 격자 좌표 결정 (미지정 또는 겹침 발생 시 스마트 빈 칸 자동 탐색)
         int posX;
@@ -90,9 +92,13 @@ public class FolderGameService {
         }
 
         List<FolderGameDetailResponse> addedGames = new ArrayList<>();
+        List<Long> appIdsNeedingEnrichment = new ArrayList<>();
 
         for (Long appId : request.getAppIds()) {
             Game game = findOrCreateGame(appId);
+            if (game.getGenres() == null || game.getGenres().isEmpty()) {
+                appIdsNeedingEnrichment.add(appId);
+            }
 
             int[] availablePos = folderService.findNextAvailablePosition(folder.getUser(), folder, FolderService.DEFAULT_GRID_COLS);
 
@@ -105,6 +111,10 @@ public class FolderGameService {
 
             FolderGame saved = folderGameRepository.save(folderGame);
             addedGames.add(FolderGameDetailResponse.from(saved));
+        }
+
+        if (!appIdsNeedingEnrichment.isEmpty()) {
+            gameMetadataEnrichmentService.enrichGameMetadataAsync(appIdsNeedingEnrichment);
         }
 
         return addedGames;
@@ -226,28 +236,16 @@ public class FolderGameService {
 
     private Game findOrCreateGame(Long appId) {
         return gameRepository.findById(appId).orElseGet(() -> {
-            Optional<SteamAppDetailsResponseDto.AppData> appDataOpt = steamApiClient.getAppDetails(appId);
-            if (appDataOpt.isPresent()) {
-                SteamAppDetailsResponseDto.AppData appData = appDataOpt.get();
-                Game newGame = Game.builder()
-                        .appId(appId)
-                        .name(appData.getName())
-                        .headerImage(appData.getHeaderImage())
-                        .heroImage(appData.getBackground())
-                        .genres(appData.getGenreNames())
-                        .developer(appData.getDeveloperName())
-                        .releaseDate(appData.getReleaseDateString())
-                        .lastSyncedAt(LocalDateTime.now())
-                        .build();
-                return gameRepository.save(newGame);
-            } else {
-                Game defaultGame = Game.builder()
-                        .appId(appId)
-                        .name("App " + appId)
-                        .headerImage("https://cdn.akamai.steamstatic.com/steam/apps/" + appId + "/header.jpg")
-                        .build();
-                return gameRepository.save(defaultGame);
-            }
+            Game defaultGame = Game.builder()
+                    .appId(appId)
+                    .name("App " + appId)
+                    .headerImage("https://cdn.akamai.steamstatic.com/steam/apps/" + appId + "/header.jpg")
+                    .heroImage("https://cdn.akamai.steamstatic.com/steam/apps/" + appId + "/library_hero.jpg")
+                    .genres(new ArrayList<>())
+                    .developer("")
+                    .lastSyncedAt(LocalDateTime.now())
+                    .build();
+            return gameRepository.save(defaultGame);
         });
     }
 

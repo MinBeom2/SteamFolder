@@ -54,6 +54,9 @@ class SteamSyncServiceTest {
     @Mock
     private SteamSyncCooldownManager cooldownManager;
 
+    @Mock
+    private GameMetadataEnrichmentService gameMetadataEnrichmentService;
+
     @InjectMocks
     private SteamSyncService steamSyncService;
 
@@ -114,6 +117,7 @@ class SteamSyncServiceTest {
             verify(cooldownManager).validateCooldown(testUser.getSteamId());
             verify(cooldownManager).applyCooldown(testUser.getSteamId());
             verify(userGameRepository).save(any(UserGame.class));
+            verify(gameMetadataEnrichmentService).enrichGameMetadataAsync(List.of(1091500L));
         }
 
         @Test

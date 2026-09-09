@@ -1,0 +1,1037 @@
+[
+  {
+    "appId": 578080,
+    "name": "PUBG: BATTLEGROUNDS",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/578080/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/578080/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "대규모 다중 사용자", "Massively Multiplayer"],
+    "developer": "KRAFTON, Inc.",
+    "releaseDate": "2017-12-21"
+  },
+  {
+    "appId": 1091500,
+    "name": "Cyberpunk 2077",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1091500/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1091500/library_hero.jpg",
+    "genres": ["RPG", "액션", "Action"],
+    "developer": "CD PROJEKT RED",
+    "releaseDate": "2020-12-10"
+  },
+  {
+    "appId": 1086940,
+    "name": "Baldur's Gate 3",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1086940/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1086940/library_hero.jpg",
+    "genres": ["RPG", "전략", "Strategy", "어드벤처", "Adventure"],
+    "developer": "Larian Studios",
+    "releaseDate": "2023-08-03"
+  },
+  {
+    "appId": 1245620,
+    "name": "ELDEN RING",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1245620/library_hero.jpg",
+    "genres": ["액션", "Action", "RPG"],
+    "developer": "FromSoftware Inc.",
+    "releaseDate": "2022-02-25"
+  },
+  {
+    "appId": 1623730,
+    "name": "Palworld",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1623730/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1623730/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie", "RPG"],
+    "developer": "Pocketpair",
+    "releaseDate": "2024-01-19"
+  },
+  {
+    "appId": 730,
+    "name": "Counter-Strike 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/730/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/730/library_hero.jpg",
+    "genres": ["액션", "Action", "무료", "Free to Play"],
+    "developer": "Valve",
+    "releaseDate": "2012-08-21"
+  },
+  {
+    "appId": 570,
+    "name": "Dota 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/570/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/570/library_hero.jpg",
+    "genres": ["액션", "Action", "전략", "Strategy", "무료", "Free to Play"],
+    "developer": "Valve",
+    "releaseDate": "2013-07-09"
+  },
+  {
+    "appId": 440,
+    "name": "Team Fortress 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/440/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/440/library_hero.jpg",
+    "genres": ["액션", "Action", "무료", "Free to Play"],
+    "developer": "Valve",
+    "releaseDate": "2007-10-10"
+  },
+  {
+    "appId": 1172470,
+    "name": "Apex Legends",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1172470/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1172470/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "무료", "Free to Play"],
+    "developer": "Respawn Entertainment",
+    "releaseDate": "2020-11-04"
+  },
+  {
+    "appId": 271590,
+    "name": "Grand Theft Auto V",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/271590/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/271590/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "Rockstar North",
+    "releaseDate": "2015-04-14"
+  },
+  {
+    "appId": 1174180,
+    "name": "Red Dead Redemption 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1174180/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "Rockstar Games",
+    "releaseDate": "2019-12-05"
+  },
+  {
+    "appId": 582010,
+    "name": "Monster Hunter: World",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/582010/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/582010/library_hero.jpg",
+    "genres": ["액션", "Action", "RPG"],
+    "developer": "CAPCOM Co., Ltd.",
+    "releaseDate": "2018-08-09"
+  },
+  {
+    "appId": 1446780,
+    "name": "MONSTER HUNTER RISE",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1446780/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1446780/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "CAPCOM Co., Ltd.",
+    "releaseDate": "2022-01-12"
+  },
+  {
+    "appId": 553850,
+    "name": "HELLDIVERS™ 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/553850/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/553850/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "Arrowhead Game Studios",
+    "releaseDate": "2024-02-08"
+  },
+  {
+    "appId": 292030,
+    "name": "The Witcher 3: Wild Hunt",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/292030/library_hero.jpg",
+    "genres": ["RPG"],
+    "developer": "CD PROJEKT RED",
+    "releaseDate": "2015-05-18"
+  },
+  {
+    "appId": 413150,
+    "name": "Stardew Valley",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/413150/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/413150/library_hero.jpg",
+    "genres": ["인디", "Indie", "RPG", "시뮬레이션", "Simulation"],
+    "developer": "ConcernedApe",
+    "releaseDate": "2016-02-26"
+  },
+  {
+    "appId": 105600,
+    "name": "Terraria",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/105600/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/105600/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie", "RPG"],
+    "developer": "Re-Logic",
+    "releaseDate": "2011-05-16"
+  },
+  {
+    "appId": 252490,
+    "name": "Rust",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/252490/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/252490/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie", "대규모 다중 사용자", "Massively Multiplayer", "RPG"],
+    "developer": "Facepunch Studios",
+    "releaseDate": "2018-02-08"
+  },
+  {
+    "appId": 359550,
+    "name": "Tom Clancy's Rainbow Six Siege",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/359550/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/359550/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "Ubisoft",
+    "releaseDate": "2015-12-01"
+  },
+  {
+    "appId": 381210,
+    "name": "Dead by Daylight",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/381210/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/381210/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "Behaviour Interactive Inc.",
+    "releaseDate": "2016-06-14"
+  },
+  {
+    "appId": 230410,
+    "name": "Warframe",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/230410/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/230410/library_hero.jpg",
+    "genres": ["액션", "Action", "무료", "Free to Play", "RPG"],
+    "developer": "Digital Extremes",
+    "releaseDate": "2013-03-25"
+  },
+  {
+    "appId": 1085660,
+    "name": "Destiny 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1085660/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1085660/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "무료", "Free to Play"],
+    "developer": "Bungie",
+    "releaseDate": "2019-10-01"
+  },
+  {
+    "appId": 1145360,
+    "name": "Hades",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1145360/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1145360/library_hero.jpg",
+    "genres": ["액션", "Action", "인디", "Indie", "RPG"],
+    "developer": "Supergiant Games",
+    "releaseDate": "2020-09-17"
+  },
+  {
+    "appId": 1145350,
+    "name": "Hades II",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1145350/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1145350/library_hero.jpg",
+    "genres": ["액션", "Action", "인디", "Indie", "RPG"],
+    "developer": "Supergiant Games",
+    "releaseDate": "2024-05-06"
+  },
+  {
+    "appId": 367520,
+    "name": "Hollow Knight",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/367520/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/367520/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie"],
+    "developer": "Team Cherry",
+    "releaseDate": "2017-02-24"
+  },
+  {
+    "appId": 646570,
+    "name": "Slay the Spire",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/646570/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/646570/library_hero.jpg",
+    "genres": ["인디", "Indie", "전략", "Strategy"],
+    "developer": "Mega Crit Games",
+    "releaseDate": "2019-01-23"
+  },
+  {
+    "appId": 550,
+    "name": "Left 4 Dead 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/550/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/550/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "Valve",
+    "releaseDate": "2009-11-17"
+  },
+  {
+    "appId": 620,
+    "name": "Portal 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/620/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/620/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "Valve",
+    "releaseDate": "2011-04-19"
+  },
+  {
+    "appId": 400,
+    "name": "Portal",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/400/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/400/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "Valve",
+    "releaseDate": "2007-10-10"
+  },
+  {
+    "appId": 220,
+    "name": "Half-Life 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/220/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/220/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "Valve",
+    "releaseDate": "2004-11-16"
+  },
+  {
+    "appId": 289070,
+    "name": "Sid Meier's Civilization VI",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/289070/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/289070/library_hero.jpg",
+    "genres": ["전략", "Strategy"],
+    "developer": "Firaxis Games",
+    "releaseDate": "2016-10-21"
+  },
+  {
+    "appId": 8930,
+    "name": "Sid Meier's Civilization V",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/8930/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/8930/library_hero.jpg",
+    "genres": ["전략", "Strategy"],
+    "developer": "Firaxis Games",
+    "releaseDate": "2010-09-23"
+  },
+  {
+    "appId": 394360,
+    "name": "Hearts of Iron IV",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/394360/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/394360/library_hero.jpg",
+    "genres": ["시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "Paradox Development Studio",
+    "releaseDate": "2016-06-06"
+  },
+  {
+    "appId": 1158310,
+    "name": "Crusader Kings III",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1158310/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1158310/library_hero.jpg",
+    "genres": ["RPG", "시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "Paradox Development Studio",
+    "releaseDate": "2020-09-01"
+  },
+  {
+    "appId": 255710,
+    "name": "Cities: Skylines",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/255710/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/255710/library_hero.jpg",
+    "genres": ["시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "Colossal Order Ltd.",
+    "releaseDate": "2015-03-10"
+  },
+  {
+    "appId": 227300,
+    "name": "Euro Truck Simulator 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/227300/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/227300/library_hero.jpg",
+    "genres": ["인디", "Indie", "시뮬레이션", "Simulation"],
+    "developer": "SCS Software",
+    "releaseDate": "2012-10-19"
+  },
+  {
+    "appId": 427520,
+    "name": "Factorio",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/427520/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/427520/library_hero.jpg",
+    "genres": ["캐주얼", "Casual", "인디", "Indie", "시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "Wube Software LTD.",
+    "releaseDate": "2020-08-14"
+  },
+  {
+    "appId": 294100,
+    "name": "RimWorld",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/294100/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/294100/library_hero.jpg",
+    "genres": ["인디", "Indie", "시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "Ludeon Studios",
+    "releaseDate": "2018-10-17"
+  },
+  {
+    "appId": 526870,
+    "name": "Satisfactory",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/526870/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/526870/library_hero.jpg",
+    "genres": ["어드벤처", "Adventure", "인디", "Indie", "시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "Coffee Stain Studios",
+    "releaseDate": "2024-09-10"
+  },
+  {
+    "appId": 264710,
+    "name": "Subnautica",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/264710/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/264710/library_hero.jpg",
+    "genres": ["어드벤처", "Adventure", "인디", "Indie"],
+    "developer": "Unknown Worlds Entertainment",
+    "releaseDate": "2018-01-23"
+  },
+  {
+    "appId": 1172620,
+    "name": "Sea of Thieves",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1172620/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1172620/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "Rare Ltd",
+    "releaseDate": "2020-06-03"
+  },
+  {
+    "appId": 548430,
+    "name": "Deep Rock Galactic",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/548430/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/548430/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "Ghost Ship Games",
+    "releaseDate": "2020-05-13"
+  },
+  {
+    "appId": 892970,
+    "name": "Valheim",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/892970/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/892970/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie", "RPG"],
+    "developer": "Iron Gate AB",
+    "releaseDate": "2021-02-02"
+  },
+  {
+    "appId": 218620,
+    "name": "PAYDAY 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/218620/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/218620/library_hero.jpg",
+    "genres": ["액션", "Action", "RPG"],
+    "developer": "OVERKILL - a Starbreeze Studio.",
+    "releaseDate": "2013-08-13"
+  },
+  {
+    "appId": 242760,
+    "name": "The Forest",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/242760/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/242760/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie", "시뮬레이션", "Simulation"],
+    "developer": "Endnight Games Ltd",
+    "releaseDate": "2018-04-30"
+  },
+  {
+    "appId": 1326470,
+    "name": "Sons Of The Forest",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1326470/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1326470/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie", "시뮬레이션", "Simulation"],
+    "developer": "Endnight Games Ltd",
+    "releaseDate": "2024-02-22"
+  },
+  {
+    "appId": 346110,
+    "name": "ARK: Survival Evolved",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/346110/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/346110/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie", "대규모 다중 사용자", "Massively Multiplayer", "RPG"],
+    "developer": "Studio Wildcard",
+    "releaseDate": "2017-08-27"
+  },
+  {
+    "appId": 377160,
+    "name": "Fallout 4",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/377160/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/377160/library_hero.jpg",
+    "genres": ["RPG"],
+    "developer": "Bethesda Game Studios",
+    "releaseDate": "2015-11-10"
+  },
+  {
+    "appId": 1151340,
+    "name": "Fallout 76",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1151340/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1151340/library_hero.jpg",
+    "genres": ["액션", "Action", "RPG"],
+    "developer": "Bethesda Game Studios",
+    "releaseDate": "2020-04-14"
+  },
+  {
+    "appId": 489830,
+    "name": "The Elder Scrolls V: Skyrim Special Edition",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/489830/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/489830/library_hero.jpg",
+    "genres": ["RPG"],
+    "developer": "Bethesda Game Studios",
+    "releaseDate": "2016-10-28"
+  },
+  {
+    "appId": 814380,
+    "name": "Sekiro™: Shadows Die Twice",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/814380/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/814380/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "FromSoftware Inc.",
+    "releaseDate": "2019-03-21"
+  },
+  {
+    "appId": 374320,
+    "name": "DARK SOULS™ III",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/374320/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/374320/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "FromSoftware, Inc.",
+    "releaseDate": "2016-04-11"
+  },
+  {
+    "appId": 570940,
+    "name": "DARK SOULS™: REMASTERED",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/570940/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/570940/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "QLOC",
+    "releaseDate": "2018-05-23"
+  },
+  {
+    "appId": 335300,
+    "name": "DARK SOULS™ II: Scholar of the First Sin",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/335300/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/335300/library_hero.jpg",
+    "genres": ["액션", "Action", "RPG"],
+    "developer": "FromSoftware, Inc.",
+    "releaseDate": "2015-04-01"
+  },
+  {
+    "appId": 1888160,
+    "name": "ARMORED CORE™ VI FIRES OF RUBICON™",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1888160/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1888160/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "FromSoftware Inc.",
+    "releaseDate": "2023-08-25"
+  },
+  {
+    "appId": 1593500,
+    "name": "God of War",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1593500/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1593500/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "RPG"],
+    "developer": "Santa Monica Studio",
+    "releaseDate": "2022-01-14"
+  },
+  {
+    "appId": 1151640,
+    "name": "Horizon Zero Dawn™ Complete Edition",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1151640/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1151640/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "RPG"],
+    "developer": "Guerrilla",
+    "releaseDate": "2020-08-07"
+  },
+  {
+    "appId": 1817070,
+    "name": "Marvel’s Spider-Man Remastered",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1817070/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1817070/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "Insomniac Games, Nixxes Software",
+    "releaseDate": "2022-08-12"
+  },
+  {
+    "appId": 2050650,
+    "name": "Resident Evil 4",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/2050650/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/2050650/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "CAPCOM Co., Ltd.",
+    "releaseDate": "2023-03-24"
+  },
+  {
+    "appId": 1196590,
+    "name": "Resident Evil Village",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1196590/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1196590/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "CAPCOM Co., Ltd.",
+    "releaseDate": "2021-05-07"
+  },
+  {
+    "appId": 883710,
+    "name": "Resident Evil 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/883710/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/883710/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "CAPCOM Co., Ltd.",
+    "releaseDate": "2019-01-25"
+  },
+  {
+    "appId": 418370,
+    "name": "Resident Evil 7 Biohazard",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/418370/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/418370/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "CAPCOM Co., Ltd.",
+    "releaseDate": "2017-01-24"
+  },
+  {
+    "appId": 379720,
+    "name": "DOOM",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/379720/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/379720/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "id Software",
+    "releaseDate": "2016-05-12"
+  },
+  {
+    "appId": 782330,
+    "name": "DOOM Eternal",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/782330/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/782330/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "id Software",
+    "releaseDate": "2020-03-19"
+  },
+  {
+    "appId": 1426210,
+    "name": "It Takes Two",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1426210/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1426210/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "Hazelight",
+    "releaseDate": "2021-03-26"
+  },
+  {
+    "appId": 448510,
+    "name": "Overcooked! 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/448510/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/448510/library_hero.jpg",
+    "genres": ["액션", "Action", "캐주얼", "Casual", "인디", "Indie"],
+    "developer": "Ghost Town Games, Team17",
+    "releaseDate": "2018-08-07"
+  },
+  {
+    "appId": 1260320,
+    "name": "Party Animals",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1260320/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1260320/library_hero.jpg",
+    "genres": ["액션", "Action", "캐주얼", "Casual", "인디", "Indie"],
+    "developer": "Recreate Games",
+    "releaseDate": "2023-09-20"
+  },
+  {
+    "appId": 945360,
+    "name": "Among Us",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/945360/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/945360/library_hero.jpg",
+    "genres": ["캐주얼", "Casual"],
+    "developer": "Innersloth",
+    "releaseDate": "2018-11-16"
+  },
+  {
+    "appId": 1097150,
+    "name": "Fall Guys",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1097150/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1097150/library_hero.jpg",
+    "genres": ["액션", "Action", "캐주얼", "Casual", "인디", "Indie", "대규모 다중 사용자", "Massively Multiplayer", "스포츠", "Sports"],
+    "developer": "Mediatonic",
+    "releaseDate": "2020-08-04"
+  },
+  {
+    "appId": 1966720,
+    "name": "Lethal Company",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1966720/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1966720/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie"],
+    "developer": "Zeekerss",
+    "releaseDate": "2023-10-23"
+  },
+  {
+    "appId": 739630,
+    "name": "Phasmophobia",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/739630/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/739630/library_hero.jpg",
+    "genres": ["액션", "Action", "인디", "Indie"],
+    "developer": "Kinetic Games",
+    "releaseDate": "2020-09-18"
+  },
+  {
+    "appId": 2881650,
+    "name": "Content Warning",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/2881650/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/2881650/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie"],
+    "developer": "Skog, Zorro, Wilnyl, Philip, thePetHen",
+    "releaseDate": "2024-04-01"
+  },
+  {
+    "appId": 1363080,
+    "name": "Manor Lords",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1363080/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1363080/library_hero.jpg",
+    "genres": ["시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "Slavic Magic",
+    "releaseDate": "2024-04-26"
+  },
+  {
+    "appId": 2358720,
+    "name": "Black Myth: Wukong",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/2358720/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/2358720/library_hero.jpg",
+    "genres": ["액션", "Action", "RPG"],
+    "developer": "Game Science",
+    "releaseDate": "2024-08-20"
+  },
+  {
+    "appId": 1868140,
+    "name": "DAVE THE DIVER",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1868140/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1868140/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "캐주얼", "Casual", "인디", "Indie", "RPG", "시뮬레이션", "Simulation"],
+    "developer": "MINTROCKET",
+    "releaseDate": "2023-06-28"
+  },
+  {
+    "appId": 1627720,
+    "name": "Lies of P",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1627720/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1627720/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "RPG"],
+    "developer": "NEOWIZ, Round8 Studio",
+    "releaseDate": "2023-09-18"
+  },
+  {
+    "appId": 2161700,
+    "name": "Persona 3 Reload",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/2161700/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/2161700/library_hero.jpg",
+    "genres": ["RPG"],
+    "developer": "ATLUS",
+    "releaseDate": "2024-02-02"
+  },
+  {
+    "appId": 1113000,
+    "name": "Persona 4 Golden",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1113000/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1113000/library_hero.jpg",
+    "genres": ["RPG"],
+    "developer": "ATLUS",
+    "releaseDate": "2020-06-13"
+  },
+  {
+    "appId": 1687950,
+    "name": "Persona 5 Royal",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1687950/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1687950/library_hero.jpg",
+    "genres": ["RPG"],
+    "developer": "ATLUS",
+    "releaseDate": "2022-10-21"
+  },
+  {
+    "appId": 2072450,
+    "name": "Like a Dragon: Infinite Wealth",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/2072450/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/2072450/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "RPG"],
+    "developer": "Ryu Ga Gotoku Studio",
+    "releaseDate": "2024-01-25"
+  },
+  {
+    "appId": 1235140,
+    "name": "Yakuza: Like a Dragon",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1235140/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1235140/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "RPG"],
+    "developer": "Ryu Ga Gotoku Studio",
+    "releaseDate": "2020-11-10"
+  },
+  {
+    "appId": 1462040,
+    "name": "FINAL FANTASY VII REMAKE INTERGRADE",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1462040/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1462040/library_hero.jpg",
+    "genres": ["액션", "Action", "RPG"],
+    "developer": "Square Enix",
+    "releaseDate": "2022-06-17"
+  },
+  {
+    "appId": 524220,
+    "name": "NieR:Automata™",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/524220/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/524220/library_hero.jpg",
+    "genres": ["액션", "Action", "RPG"],
+    "developer": "Square Enix, PlatinumGames Inc.",
+    "releaseDate": "2017-03-17"
+  },
+  {
+    "appId": 1364780,
+    "name": "Street Fighter 6",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1364780/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1364780/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "CAPCOM Co., Ltd.",
+    "releaseDate": "2023-06-02"
+  },
+  {
+    "appId": 1778820,
+    "name": "TEKKEN 8",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1778820/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1778820/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "Bandai Namco Studios Inc.",
+    "releaseDate": "2024-01-25"
+  },
+  {
+    "appId": 1384160,
+    "name": "GUILTY GEAR -STRIVE-",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1384160/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1384160/library_hero.jpg",
+    "genres": ["액션", "Action"],
+    "developer": "Arc System Works",
+    "releaseDate": "2021-06-11"
+  },
+  {
+    "appId": 2195250,
+    "name": "EA SPORTS FC™ 24",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/2195250/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/2195250/library_hero.jpg",
+    "genres": ["시뮬레이션", "Simulation", "스포츠", "Sports"],
+    "developer": "EA Canada & EA Romania",
+    "releaseDate": "2023-09-29"
+  },
+  {
+    "appId": 1551360,
+    "name": "Forza Horizon 5",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1551360/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1551360/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "레이싱", "Racing", "시뮬레이션", "Simulation", "스포츠", "Sports"],
+    "developer": "Playground Games",
+    "releaseDate": "2021-11-09"
+  },
+  {
+    "appId": 1293830,
+    "name": "Forza Horizon 4",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1293830/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1293830/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "레이싱", "Racing", "시뮬레이션", "Simulation", "스포츠", "Sports"],
+    "developer": "Playground Games",
+    "releaseDate": "2021-03-09"
+  },
+  {
+    "appId": 244210,
+    "name": "Assetto Corsa",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/244210/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/244210/library_hero.jpg",
+    "genres": ["인디", "Indie", "레이싱", "Racing", "시뮬레이션", "Simulation", "스포츠", "Sports"],
+    "developer": "Kunos Simulazioni",
+    "releaseDate": "2014-12-19"
+  },
+  {
+    "appId": 431960,
+    "name": "Wallpaper Engine",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/431960/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/431960/library_hero.jpg",
+    "genres": ["애니메이션 및 모델링", "디자인 및 일러스트레이션", "유틸리티", "Utilities"],
+    "developer": "Wallpaper Engine Team",
+    "releaseDate": "2018-11-16"
+  },
+  {
+    "appId": 4000,
+    "name": "Garry's Mod",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/4000/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/4000/library_hero.jpg",
+    "genres": ["시뮬레이션", "Simulation"],
+    "developer": "Facepunch Studios",
+    "releaseDate": "2006-11-29"
+  },
+  {
+    "appId": 322330,
+    "name": "Don't Starve Together",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/322330/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/322330/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie", "RPG", "시뮬레이션", "Simulation"],
+    "developer": "Klei Entertainment",
+    "releaseDate": "2016-04-21"
+  },
+  {
+    "appId": 108600,
+    "name": "Project Zomboid",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/108600/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/108600/library_hero.jpg",
+    "genres": ["인디", "Indie", "RPG", "시뮬레이션", "Simulation"],
+    "developer": "The Indie Stone",
+    "releaseDate": "2013-11-08"
+  },
+  {
+    "appId": 251570,
+    "name": "7 Days to Die",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/251570/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/251570/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie", "RPG", "시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "The Fun Pimps",
+    "releaseDate": "2024-07-25"
+  },
+  {
+    "appId": 588650,
+    "name": "Dead Cells",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/588650/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/588650/library_hero.jpg",
+    "genres": ["액션", "Action", "인디", "Indie"],
+    "developer": "Motion Twin, Evil Empire",
+    "releaseDate": "2018-08-07"
+  },
+  {
+    "appId": 1794680,
+    "name": "Vampire Survivors",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1794680/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1794680/library_hero.jpg",
+    "genres": ["액션", "Action", "캐주얼", "Casual", "인디", "Indie", "RPG"],
+    "developer": "poncle",
+    "releaseDate": "2022-10-20"
+  },
+  {
+    "appId": 1942280,
+    "name": "Brotato",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1942280/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1942280/library_hero.jpg",
+    "genres": ["액션", "Action", "캐주얼", "Casual", "인디", "Indie", "RPG"],
+    "developer": "Blobfish",
+    "releaseDate": "2023-06-23"
+  },
+  {
+    "appId": 250900,
+    "name": "The Binding of Isaac: Rebirth",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/250900/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/250900/library_hero.jpg",
+    "genres": ["액션", "Action", "인디", "Indie"],
+    "developer": "Nicalis, Inc., Edmund McMillen",
+    "releaseDate": "2014-11-04"
+  },
+  {
+    "appId": 311690,
+    "name": "Enter the Gungeon",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/311690/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/311690/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure", "인디", "Indie"],
+    "developer": "Dodge Roll",
+    "releaseDate": "2016-04-05"
+  },
+  {
+    "appId": 268910,
+    "name": "Cuphead",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/268910/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/268910/library_hero.jpg",
+    "genres": ["액션", "Action", "인디", "Indie"],
+    "developer": "Studio MDHR Entertainment Inc.",
+    "releaseDate": "2017-09-29"
+  },
+  {
+    "appId": 504230,
+    "name": "Celeste",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/504230/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/504230/library_hero.jpg",
+    "genres": ["어드벤처", "Adventure", "인디", "Indie"],
+    "developer": "Maddy Makes Games",
+    "releaseDate": "2018-01-25"
+  },
+  {
+    "appId": 391540,
+    "name": "Undertale",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/391540/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/391540/library_hero.jpg",
+    "genres": ["인디", "Indie", "RPG"],
+    "developer": "tobyfox",
+    "releaseDate": "2015-09-15"
+  },
+  {
+    "appId": 1150690,
+    "name": "OMORI",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1150690/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1150690/library_hero.jpg",
+    "genres": ["어드벤처", "Adventure", "인디", "Indie", "RPG"],
+    "developer": "OMOCAT, LLC",
+    "releaseDate": "2020-12-25"
+  },
+  {
+    "appId": 632470,
+    "name": "Disco Elysium - The Final Cut",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/632470/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/632470/library_hero.jpg",
+    "genres": ["RPG"],
+    "developer": "ZA/UM",
+    "releaseDate": "2019-10-15"
+  },
+  {
+    "appId": 1222140,
+    "name": "Detroit: Become Human",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1222140/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1222140/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "Quantic Dream",
+    "releaseDate": "2020-06-18"
+  },
+  {
+    "appId": 1332010,
+    "name": "Stray",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1332010/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1332010/library_hero.jpg",
+    "genres": ["어드벤처", "Adventure", "인디", "Indie"],
+    "developer": "BlueTwelve Studio",
+    "releaseDate": "2022-07-19"
+  },
+  {
+    "appId": 1850570,
+    "name": "DEATH STRANDING DIRECTOR'S CUT",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1850570/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1850570/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "KOJIMA PRODUCTIONS",
+    "releaseDate": "2022-03-30"
+  },
+  {
+    "appId": 275850,
+    "name": "No Man's Sky",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/275850/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/275850/library_hero.jpg",
+    "genres": ["액션", "Action", "어드벤처", "Adventure"],
+    "developer": "Hello Games",
+    "releaseDate": "2016-08-12"
+  },
+  {
+    "appId": 281990,
+    "name": "Stellaris",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/281990/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/281990/library_hero.jpg",
+    "genres": ["시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "Paradox Development Studio",
+    "releaseDate": "2016-05-09"
+  },
+  {
+    "appId": 1142710,
+    "name": "Total War: WARHAMMER III",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1142710/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1142710/library_hero.jpg",
+    "genres": ["액션", "Action", "전략", "Strategy"],
+    "developer": "CREATIVE ASSEMBLY, Feral Interactive",
+    "releaseDate": "2022-02-17"
+  },
+  {
+    "appId": 435150,
+    "name": "Divinity: Original Sin 2 - Definitive Edition",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/435150/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/435150/library_hero.jpg",
+    "genres": ["RPG", "전략", "Strategy"],
+    "developer": "Larian Studios",
+    "releaseDate": "2017-09-14"
+  },
+  {
+    "appId": 323190,
+    "name": "Frostpunk",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/323190/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/323190/library_hero.jpg",
+    "genres": ["시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "11 bit studios",
+    "releaseDate": "2018-04-24"
+  },
+  {
+    "appId": 1601580,
+    "name": "Frostpunk 2",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1601580/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1601580/library_hero.jpg",
+    "genres": ["시뮬레이션", "Simulation", "전략", "Strategy"],
+    "developer": "11 bit studios",
+    "releaseDate": "2024-09-20"
+  },
+  {
+    "appId": 1250410,
+    "name": "Microsoft Flight Simulator 40th Anniversary Edition",
+    "headerImage": "https://cdn.akamai.steamstatic.com/steam/apps/1250410/header.jpg",
+    "heroImage": "https://cdn.akamai.steamstatic.com/steam/apps/1250410/library_hero.jpg",
+    "genres": ["시뮬레이션", "Simulation"],
+    "developer": "Asobo Studio",
+    "releaseDate": "2020-08-18"
+  }
+]

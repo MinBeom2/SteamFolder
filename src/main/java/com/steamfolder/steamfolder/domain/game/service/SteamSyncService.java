@@ -47,6 +47,7 @@ public class SteamSyncService {
     private final GameRepository gameRepository;
     private final UserGameRepository userGameRepository;
     private final SteamSyncCooldownManager cooldownManager;
+    private final GameMetadataEnrichmentService gameMetadataEnrichmentService;
 
     private static final long ACHIEVEMENT_CACHE_MINUTES = 60;
     private final Map<String, GameAchievementDetailResponseDto> achievementCache = new ConcurrentHashMap<>();
@@ -78,6 +79,7 @@ public class SteamSyncService {
 
         int syncedCount = 0;
         int newlyAddedCount = 0;
+        List<Long> appIdsNeedingEnrichment = new ArrayList<>();
 
         for (SteamOwnedGamesResponseDto.SteamGameDto steamGame : games) {
             Long appId = steamGame.getAppId();
@@ -104,6 +106,10 @@ public class SteamSyncService {
                 return gameRepository.save(newGame);
             });
 
+            if (game.getGenres() == null || game.getGenres().isEmpty()) {
+                appIdsNeedingEnrichment.add(appId);
+            }
+
             // UserGame 플레이타임 및 최근 플레이 일시 Upsert
             int playtime = steamGame.getPlaytimeForever();
             LocalDateTime lastPlayedAt = null;
@@ -127,6 +133,11 @@ public class SteamSyncService {
                 newlyAddedCount++;
             }
             syncedCount++;
+        }
+
+        // 장르가 비어있는 게임 비동기 메타데이터 수집 트리거 (스팀 429 방어 및 유저 즉각 응답)
+        if (!appIdsNeedingEnrichment.isEmpty()) {
+            gameMetadataEnrichmentService.enrichGameMetadataAsync(appIdsNeedingEnrichment);
         }
 
         // 4. 쿨다운 적용

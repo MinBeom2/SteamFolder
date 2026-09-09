@@ -3,6 +3,7 @@ package com.steamfolder.steamfolder.domain.showcase.controller;
 import com.steamfolder.steamfolder.common.dto.ApiResponse;
 import com.steamfolder.steamfolder.common.dto.CursorPageResponseDto;
 import com.steamfolder.steamfolder.common.security.UserPrincipal;
+import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
@@ -55,6 +56,20 @@ public class ShowcaseController {
         Long requesterUserId = principal != null ? principal.getUserId() : null;
         ShowcaseResponse response = showcaseService.getPublicShowcase(identifier, requesterUserId);
         return ResponseEntity.ok(ApiResponse.success("공개 쇼케이스를 성공적으로 조회했습니다.", response));
+    }
+
+    /**
+     * 게스트 및 타 유저를 위한 공개 쇼케이스 보유 게임 목록 페이징 조회 API (steamId 또는 username)
+     */
+    @GetMapping("/{identifier}/games")
+    public ResponseEntity<ApiResponse<CursorPageResponseDto<UserGameResponseDto>>> getPublicShowcaseGames(
+            @PathVariable String identifier,
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(required = false, defaultValue = "24") int size
+    ) {
+        CursorPageResponseDto<UserGameResponseDto> response =
+                showcaseService.getPublicShowcaseGames(identifier, cursor, size);
+        return ResponseEntity.ok(ApiResponse.success("쇼케이스 보유 게임 목록을 성공적으로 조회했습니다.", response));
     }
 
     /**
