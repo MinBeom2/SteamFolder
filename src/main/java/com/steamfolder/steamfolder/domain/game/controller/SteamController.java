@@ -8,6 +8,7 @@ import com.steamfolder.steamfolder.domain.game.dto.response.CooldownResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.SyncResultResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.game.service.SteamSyncService;
+import com.steamfolder.steamfolder.domain.game.service.UserGameQueryService;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import java.util.List;
 public class SteamController {
 
     private final SteamSyncService steamSyncService;
+    private final UserGameQueryService userGameQueryService;
     private final UserRepository userRepository;
 
     @PostMapping("/sync")
@@ -51,7 +53,7 @@ public class SteamController {
             @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         User user = getUser(userPrincipal);
-        List<UserGameResponseDto> response = steamSyncService.getUserGames(user);
+        List<UserGameResponseDto> response = userGameQueryService.getUserGames(user);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

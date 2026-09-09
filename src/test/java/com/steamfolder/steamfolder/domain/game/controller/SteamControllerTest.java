@@ -9,6 +9,7 @@ import com.steamfolder.steamfolder.domain.game.dto.response.CooldownResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.SyncResultResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.game.service.SteamSyncService;
+import com.steamfolder.steamfolder.domain.game.service.UserGameQueryService;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +43,9 @@ class SteamControllerTest {
 
     @MockitoBean
     private SteamSyncService steamSyncService;
+
+    @MockitoBean
+    private UserGameQueryService userGameQueryService;
 
     @MockitoBean
     private UserRepository userRepository;
@@ -126,7 +130,7 @@ class SteamControllerTest {
                 .playtimeForever(7200)
                 .build();
 
-        given(steamSyncService.getUserGames(eq(testUser))).willReturn(List.of(gameDto));
+        given(userGameQueryService.getUserGames(eq(testUser))).willReturn(List.of(gameDto));
 
         // when & then
         mockMvc.perform(get("/api/v1/steam/user-games")

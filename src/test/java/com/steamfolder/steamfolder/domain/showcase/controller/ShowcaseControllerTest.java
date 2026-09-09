@@ -175,4 +175,67 @@ class ShowcaseControllerTest {
                 .andExpect(jsonPath("$.data.liked").value(true))
                 .andExpect(jsonPath("$.data.totalLikeCount").value(42));
     }
+
+    @Test
+    @DisplayName("GET /api/v1/showcases/{identifier}/games - 게스트 비로그인 접근 및 기본 플레이타임 정렬 조회 200 OK")
+    void getPublicShowcaseGames_GuestAccess_Returns200() throws Exception {
+        // given
+        com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto gameDto =
+                com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto.builder()
+                        .userGameId(10L)
+                        .appId(730L)
+                        .name("Counter-Strike 2")
+                        .playtimeForever(5000)
+                        .genres(List.of("Action", "FPS"))
+                        .build();
+
+        com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto response =
+                com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto.of(List.of(gameDto));
+
+        given(showcaseService.getPublicShowcaseGames(eq("ShowcaseKing"), any(), eq("playtime")))
+                .willReturn(response);
+
+        // when & then (비로그인 게스트 요청)
+        mockMvc.perform(get("/api/v1/showcases/ShowcaseKing/games")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalCount").value(1))
+                .andExpect(jsonPath("$.data.games[0].appId").value(730L))
+                .andExpect(jsonPath("$.data.games[0].name").value("Counter-Strike 2"))
+                // 하위 호환 필드 검증
+                .andExpect(jsonPath("$.data.content[0].appId").value(730L))
+                .andExpect(jsonPath("$.data.hasNext").value(false));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/showcases/{identifier}/games/filter - 다중 장르 및 정렬 조건 전달 200 OK")
+    void getPublicShowcaseGames_WithFilterAndSort_Returns200() throws Exception {
+        // given
+        com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto gameDto =
+                com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto.builder()
+                        .userGameId(20L)
+                        .appId(1091500L)
+                        .name("Cyberpunk 2077")
+                        .playtimeForever(7200)
+                        .genres(List.of("Action", "RPG"))
+                        .build();
+
+        com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto response =
+                com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto.of(List.of(gameDto));
+
+        given(showcaseService.getPublicShowcaseGames(eq("ShowcaseKing"), eq(List.of("Action", "RPG")), eq("recent")))
+                .willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/showcases/ShowcaseKing/games/filter")
+                        .param("genres", "Action,RPG")
+                        .param("sort", "recent")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalCount").value(1))
+                .andExpect(jsonPath("$.data.games[0].appId").value(1091500L))
+                .andExpect(jsonPath("$.data.games[0].name").value("Cyberpunk 2077"));
+    }
 }

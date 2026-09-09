@@ -4,6 +4,8 @@ import com.steamfolder.steamfolder.domain.game.entity.Game;
 import com.steamfolder.steamfolder.domain.game.entity.UserGame;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -14,6 +16,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserGameRepository extends JpaRepository<UserGame, Long>, JpaSpecificationExecutor<UserGame> {
+
+    @Override
+    @EntityGraph(attributePaths = {"game"})
+    List<UserGame> findAll(Specification<UserGame> spec, Sort sort);
 
     Optional<UserGame> findByUserAndGame(User user, Game game);
 

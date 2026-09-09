@@ -49,6 +49,9 @@ class UserControllerTest {
     private com.steamfolder.steamfolder.domain.game.service.SteamSyncService steamSyncService;
 
     @MockitoBean
+    private com.steamfolder.steamfolder.domain.game.service.UserGameQueryService userGameQueryService;
+
+    @MockitoBean
     private com.steamfolder.steamfolder.domain.user.repository.UserRepository userRepository;
 
     @MockitoBean
@@ -195,7 +198,7 @@ class UserControllerTest {
                 );
 
         given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
-        given(steamSyncService.getUserGamesWithCursor(eq(testUser), any(), eq(20)))
+        given(userGameQueryService.getUserGamesWithCursor(eq(testUser), any(), eq(20)))
                 .willReturn(pageResponse);
 
         // when & then
@@ -225,7 +228,7 @@ class UserControllerTest {
                 com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto.of(List.of(item));
 
         given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
-        given(steamSyncService.filterUserGames(eq(testUser), any(), eq("playtime")))
+        given(userGameQueryService.filterUserGames(eq(testUser), any(), eq("playtime")))
                 .willReturn(response);
 
         // when & then

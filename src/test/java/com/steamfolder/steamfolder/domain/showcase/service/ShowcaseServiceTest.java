@@ -5,8 +5,10 @@ import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
+import com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto;
+import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
-import com.steamfolder.steamfolder.domain.game.service.SteamSyncService;
+import com.steamfolder.steamfolder.domain.game.service.UserGameQueryService;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseResponse;
@@ -54,7 +56,7 @@ class ShowcaseServiceTest {
     private ShowcaseLikeRepository showcaseLikeRepository;
 
     @Mock
-    private SteamSyncService steamSyncService;
+    private UserGameQueryService userGameQueryService;
 
     private User testUser;
     private Folder rootFolder;
@@ -356,5 +358,34 @@ class ShowcaseServiceTest {
         assertThat(response.getContent().get(0).getUserId()).isEqualTo(30L);
         assertThat(response.getContent().get(0).getLikeId()).isEqualTo(50L);
         assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("공개 쇼케이스 보유 게임 목록 조회 시 UserGameQueryService 필터/정렬 위임 성공")
+    void getPublicShowcaseGames_success() {
+        // given
+        String identifier = "testUser";
+        User targetUser = User.builder().id(2L).username("testUser").steamId("76561198000000002").build();
+        given(userRepository.findBySteamId(identifier)).willReturn(Optional.empty());
+        given(userRepository.findByUsername(identifier)).willReturn(Optional.of(targetUser));
+
+        UserGameResponseDto gameDto = UserGameResponseDto.builder()
+                .userGameId(10L)
+                .appId(730L)
+                .name("Counter-Strike 2")
+                .playtimeForever(5000)
+                .build();
+        FilteredGamesResponseDto expectedDto = FilteredGamesResponseDto.of(List.of(gameDto));
+
+        given(userGameQueryService.filterUserGames(targetUser, List.of("Action"), "recent"))
+                .willReturn(expectedDto);
+
+        // when
+        FilteredGamesResponseDto result = showcaseService.getPublicShowcaseGames(identifier, List.of("Action"), "recent");
+
+        // then
+        assertThat(result.getTotalCount()).isEqualTo(1);
+        assertThat(result.getGames().get(0).getName()).isEqualTo("Counter-Strike 2");
+        verify(userGameQueryService).filterUserGames(targetUser, List.of("Action"), "recent");
     }
 }

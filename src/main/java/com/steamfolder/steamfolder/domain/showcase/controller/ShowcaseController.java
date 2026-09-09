@@ -3,6 +3,7 @@ package com.steamfolder.steamfolder.domain.showcase.controller;
 import com.steamfolder.steamfolder.common.dto.ApiResponse;
 import com.steamfolder.steamfolder.common.dto.CursorPageResponseDto;
 import com.steamfolder.steamfolder.common.security.UserPrincipal;
+import com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.LikedShowcaseResponseDto;
 import com.steamfolder.steamfolder.domain.showcase.dto.response.ShowcaseLikeResponse;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/showcases")
@@ -59,16 +62,15 @@ public class ShowcaseController {
     }
 
     /**
-     * 게스트 및 타 유저를 위한 공개 쇼케이스 보유 게임 목록 페이징 조회 API (steamId 또는 username)
+     * 게스트 및 타 유저를 위한 공개 쇼케이스 보유 게임 목록 조회 API (장르 필터링 및 DB 정렬 지원)
      */
-    @GetMapping("/{identifier}/games")
-    public ResponseEntity<ApiResponse<CursorPageResponseDto<UserGameResponseDto>>> getPublicShowcaseGames(
+    @GetMapping({"/{identifier}/games", "/{identifier}/games/filter"})
+    public ResponseEntity<ApiResponse<FilteredGamesResponseDto>> getPublicShowcaseGames(
             @PathVariable String identifier,
-            @RequestParam(required = false) Long cursor,
-            @RequestParam(required = false, defaultValue = "24") int size
+            @RequestParam(required = false) List<String> genres,
+            @RequestParam(required = false, defaultValue = "playtime") String sort
     ) {
-        CursorPageResponseDto<UserGameResponseDto> response =
-                showcaseService.getPublicShowcaseGames(identifier, cursor, size);
+        FilteredGamesResponseDto response = showcaseService.getPublicShowcaseGames(identifier, genres, sort);
         return ResponseEntity.ok(ApiResponse.success("쇼케이스 보유 게임 목록을 성공적으로 조회했습니다.", response));
     }
 
