@@ -1,11 +1,13 @@
 package com.steamfolder.steamfolder.common.security.config;
 
+import com.steamfolder.steamfolder.common.ratelimit.RateLimitFilter;
 import com.steamfolder.steamfolder.common.security.jwt.JwtAuthenticationEntryPoint;
 import com.steamfolder.steamfolder.common.security.jwt.JwtAuthenticationFilter;
 import com.steamfolder.steamfolder.common.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -27,6 +29,7 @@ public class SecurityConfig {
 
     private final JwtTokenProvider tokenProvider;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final ObjectProvider<RateLimitFilter> rateLimitFilterProvider;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -51,6 +54,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
+
+        rateLimitFilterProvider.ifAvailable(rateLimitFilter ->
+                http.addFilterAfter(rateLimitFilter, JwtAuthenticationFilter.class)
+        );
 
         return http.build();
     }

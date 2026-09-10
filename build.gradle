@@ -29,6 +29,8 @@ dependencies {
 
     // 3. Redis (캐싱, 세션/토큰 관리)
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'com.bucket4j:bucket4j_jdk17-redis-common:8.17.0'
+    implementation 'com.bucket4j:bucket4j_jdk17-lettuce:8.17.0'
 
     // 4. Security & JWT
     implementation 'org.springframework.boot:spring-boot-starter-security'

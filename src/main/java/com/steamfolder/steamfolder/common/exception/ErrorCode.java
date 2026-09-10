@@ -16,6 +16,10 @@ public enum ErrorCode {
     INVALID_TYPE_VALUE(HttpStatus.BAD_REQUEST, "C005", "잘못된 타입의 값입니다."),
     HANDLE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "C006", "접근 권한이 없습니다."),
 
+    // Rate limit
+    RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "RL001", "요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요."),
+    RATE_LIMIT_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "RL002", "요청 제한 서비스를 일시적으로 사용할 수 없습니다."),
+
     // User & Auth
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "존재하지 않는 유저입니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증 정보가 유효하지 않습니다."),
