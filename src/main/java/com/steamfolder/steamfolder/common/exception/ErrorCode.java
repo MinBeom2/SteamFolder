@@ -40,6 +40,9 @@ public enum ErrorCode {
     STEAM_PROFILE_PRIVATE(HttpStatus.BAD_REQUEST, "G004", "스팀 프로필 또는 게임 목록이 비공개 상태입니다."),
     SYNC_COOLDOWN_ACTIVE(HttpStatus.TOO_MANY_REQUESTS, "G005", "동기화 쿨다운(5분) 제한 중입니다."),
 
+    // Feedback
+    INVALID_FEEDBACK_CONTENT(HttpStatus.BAD_REQUEST, "FB001", "피드백 내용은 공백을 제외하고 10자 이상 3,000자 이하여야 합니다."),
+
     // Showcase & Social
     CANNOT_LIKE_OWN_SHOWCASE(HttpStatus.BAD_REQUEST, "S001", "본인의 쇼케이스에는 좋아요를 누를 수 없습니다.");
 

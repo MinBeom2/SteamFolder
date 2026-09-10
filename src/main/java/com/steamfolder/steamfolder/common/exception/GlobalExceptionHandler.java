@@ -3,6 +3,7 @@ package com.steamfolder.steamfolder.common.exception;
 import com.steamfolder.steamfolder.common.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,6 +35,13 @@ public class GlobalExceptionHandler {
         log.warn("MethodArgumentTypeMismatchException: {}", e.getMessage());
         ErrorResponse response = ErrorResponse.of(ErrorCode.INVALID_TYPE_VALUE);
         return new ResponseEntity<>(response, ErrorCode.INVALID_TYPE_VALUE.getStatus());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    protected ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.warn("HttpMessageNotReadableException: {}", e.getMessage());
+        ErrorResponse response = ErrorResponse.of(ErrorCode.INVALID_INPUT_VALUE);
+        return new ResponseEntity<>(response, ErrorCode.INVALID_INPUT_VALUE.getStatus());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
