@@ -1,14 +1,11 @@
 package com.steamfolder.steamfolder.domain.game.service;
 
-import com.steamfolder.steamfolder.common.dto.CursorPageResponseDto;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.game.client.SteamApiClient;
 import com.steamfolder.steamfolder.domain.game.dto.response.CooldownResponseDto;
-import com.steamfolder.steamfolder.domain.game.dto.response.FilteredGamesResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.SyncResultResponseDto;
-import com.steamfolder.steamfolder.domain.game.dto.response.UserGameResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamOwnedGamesResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerAchievementsResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamPlayerSummaryResponseDto;
@@ -16,14 +13,9 @@ import com.steamfolder.steamfolder.domain.game.entity.Game;
 import com.steamfolder.steamfolder.domain.game.entity.UserGame;
 import com.steamfolder.steamfolder.domain.game.repository.GameRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
-import com.steamfolder.steamfolder.domain.game.repository.specification.UserGameSpecification;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
