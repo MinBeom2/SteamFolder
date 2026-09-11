@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.containsString;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -74,5 +77,17 @@ class SecurityIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").value("Protected User: AuthGamer, SteamID: 76561198999999999"));
+    }
+
+    @Test
+    @DisplayName("CORS 응답에서 레이트 리밋 헤더를 프론트에 노출한다")
+    void exposesRateLimitHeadersForCorsRequests() throws Exception {
+        mockMvc.perform(options("/api/v1/auth/test-public")
+                        .header("Origin", "https://example.com")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Expose-Headers", containsString("X-RateLimit-Limit")))
+                .andExpect(header().string("Access-Control-Expose-Headers", containsString("X-RateLimit-Remaining")))
+                .andExpect(header().string("Access-Control-Expose-Headers", containsString("Retry-After")));
     }
 }

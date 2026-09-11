@@ -5,22 +5,25 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
-import lombok.RequiredArgsConstructor;
-
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.function.Supplier;
 
-@RequiredArgsConstructor
 public class Bucket4jRateLimitService implements RateLimitService {
 
     private static final String KEY_PREFIX = "rate-limit:v1:";
 
-    private final ProxyManager<byte[]> proxyManager;
+    private final Supplier<ProxyManager<byte[]>> proxyManagerSupplier;
+    private volatile ProxyManager<byte[]> proxyManager;
+
+    public Bucket4jRateLimitService(Supplier<ProxyManager<byte[]>> proxyManagerSupplier) {
+        this.proxyManagerSupplier = proxyManagerSupplier;
+    }
 
     @Override
     public RateLimitDecision consume(RateLimitPolicy policy, RateLimitIdentity identity) {
         try {
-            Bucket bucket = proxyManager.getProxy(
+            Bucket bucket = getProxyManager().getProxy(
                     bucketKey(policy, identity).getBytes(StandardCharsets.UTF_8),
                     () -> configurationFor(policy)
             );
@@ -39,6 +42,20 @@ public class Bucket4jRateLimitService implements RateLimitService {
             );
         } catch (RuntimeException exception) {
             throw new RateLimitUnavailableException(exception);
+        }
+    }
+
+    private ProxyManager<byte[]> getProxyManager() {
+        ProxyManager<byte[]> current = proxyManager;
+        if (current != null) {
+            return current;
+        }
+
+        synchronized (this) {
+            if (proxyManager == null) {
+                proxyManager = proxyManagerSupplier.get();
+            }
+            return proxyManager;
         }
     }
 

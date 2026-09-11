@@ -33,13 +33,19 @@ public enum RateLimitPolicy {
     }
 
     public static RateLimitPolicy resolve(HttpMethod method, String requestUri) {
+        return resolve(method.name(), requestUri);
+    }
+
+    public static RateLimitPolicy resolve(String method, String requestUri) {
         if (requestUri.startsWith("/api/v1/auth/")) {
             return AUTH;
         }
-        if (method == HttpMethod.POST && isSteamSyncRequest(requestUri)) {
+        if (HttpMethod.POST.matches(method) && isSteamSyncRequest(requestUri)) {
             return STEAM_SYNC;
         }
-        if (method != HttpMethod.GET && method != HttpMethod.HEAD && method != HttpMethod.OPTIONS) {
+        if (!HttpMethod.GET.matches(method)
+                && !HttpMethod.HEAD.matches(method)
+                && !HttpMethod.OPTIONS.matches(method)) {
             return WRITE;
         }
         return READ;

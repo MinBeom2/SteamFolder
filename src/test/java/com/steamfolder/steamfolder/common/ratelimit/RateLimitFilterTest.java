@@ -5,8 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,6 +78,40 @@ class RateLimitFilterTest {
         assertThat(response.getStatus()).isEqualTo(503);
         assertThat(response.getContentAsString()).contains("\"code\":\"RL002\"");
         assertThat(chainCalled).isFalse();
+    }
+
+    @Test
+    @DisplayName("Redis 장애 중 조회 요청은 다음 필터로 전달한다")
+    void forwardsReadRequestWhenRateLimitStoreIsUnavailable() throws Exception {
+        RateLimitFilter filter = filter((policy, identity) -> {
+            throw new RateLimitUnavailableException(new IllegalStateException("redis unavailable"));
+        });
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/rankings");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        AtomicBoolean chainCalled = new AtomicBoolean(false);
+
+        filter.doFilter(request, response, recordingChain(chainCalled));
+
+        assertThat(chainCalled).isTrue();
+        assertThat(response.getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    @DisplayName("알 수 없는 HTTP 메서드는 쓰기 정책으로 안전하게 처리한다")
+    void handlesUnknownHttpMethodAsWriteRequest() throws Exception {
+        AtomicBoolean writePolicyUsed = new AtomicBoolean(false);
+        RateLimitFilter filter = filter((policy, identity) -> {
+            writePolicyUsed.set(policy == RateLimitPolicy.WRITE);
+            return new RateLimitDecision(true, policy, identity.type(), policy.getCapacity(), 29, 0);
+        });
+        MockHttpServletRequest request = new MockHttpServletRequest("PROPFIND", "/api/v1/resources");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        AtomicBoolean chainCalled = new AtomicBoolean(false);
+
+        filter.doFilter(request, response, recordingChain(chainCalled));
+
+        assertThat(writePolicyUsed).isTrue();
+        assertThat(chainCalled).isTrue();
     }
 
     private RateLimitFilter filter(RateLimitService service) {

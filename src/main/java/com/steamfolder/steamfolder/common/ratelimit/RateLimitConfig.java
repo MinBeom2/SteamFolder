@@ -15,14 +15,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 import java.time.Duration;
+import java.util.function.Supplier;
 
 @Configuration
 @EnableConfigurationProperties(RateLimitProperties.class)
 public class RateLimitConfig {
 
-    @Bean
-    @ConditionalOnProperty(prefix = "rate-limit", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public ProxyManager<byte[]> rateLimitProxyManager(LettuceConnectionFactory connectionFactory) {
+    private ProxyManager<byte[]> createProxyManager(LettuceConnectionFactory connectionFactory) {
         AbstractRedisClient client = connectionFactory.getRequiredNativeClient();
         ExpirationAfterWriteStrategy expiration = ExpirationAfterWriteStrategy
                 .basedOnTimeForRefillingBucketUpToMax(Duration.ofMinutes(1));
@@ -44,8 +43,9 @@ public class RateLimitConfig {
 
     @Bean
     @ConditionalOnProperty(prefix = "rate-limit", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public RateLimitService bucket4jRateLimitService(ProxyManager<byte[]> rateLimitProxyManager) {
-        return new Bucket4jRateLimitService(rateLimitProxyManager);
+    public RateLimitService bucket4jRateLimitService(LettuceConnectionFactory connectionFactory) {
+        Supplier<ProxyManager<byte[]>> proxyManagerSupplier = () -> createProxyManager(connectionFactory);
+        return new Bucket4jRateLimitService(proxyManagerSupplier);
     }
 
     @Bean

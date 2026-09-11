@@ -21,5 +21,7 @@ class RateLimitPolicyTest {
                 .isEqualTo(RateLimitPolicy.WRITE);
         assertThat(RateLimitPolicy.resolve(HttpMethod.GET, "/api/v1/rankings"))
                 .isEqualTo(RateLimitPolicy.READ);
+        assertThat(RateLimitPolicy.resolve("PROPFIND", "/api/v1/resources"))
+                .isEqualTo(RateLimitPolicy.WRITE);
     }
 }

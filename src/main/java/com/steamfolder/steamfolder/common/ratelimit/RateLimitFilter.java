@@ -37,7 +37,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        RateLimitPolicy policy = RateLimitPolicy.resolve(HttpMethod.valueOf(request.getMethod()), request.getRequestURI());
+        RateLimitPolicy policy = RateLimitPolicy.resolve(request.getMethod(), request.getRequestURI());
         try {
             RateLimitDecision decision = rateLimitService.consume(policy, identityResolver.resolve(request, policy));
             request.setAttribute(DECISION_ATTRIBUTE, decision);

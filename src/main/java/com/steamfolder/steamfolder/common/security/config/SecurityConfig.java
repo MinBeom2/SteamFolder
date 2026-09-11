@@ -68,6 +68,11 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setExposedHeaders(Arrays.asList(
+                "X-RateLimit-Limit",
+                "X-RateLimit-Remaining",
+                "Retry-After"
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

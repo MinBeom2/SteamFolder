@@ -8,6 +8,8 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ClientIdentityResolverTest {
@@ -53,7 +55,6 @@ class ClientIdentityResolverTest {
     @DisplayName("신뢰 프록시가 꺼진 환경에서는 X-Forwarded-For를 무시한다")
     void ignoresForwardedForWhenProxyIsNotTrusted() {
         RateLimitProperties properties = new RateLimitProperties();
-        properties.setTrustedProxyEnabled(false);
         ClientIdentityResolver resolver = new ClientIdentityResolver(properties);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("203.0.113.20");
@@ -69,13 +70,44 @@ class ClientIdentityResolverTest {
     @DisplayName("신뢰 프록시 환경에서는 X-Forwarded-For의 첫 번째 IP를 사용한다")
     void usesFirstForwardedForAddressWhenProxyIsTrusted() {
         RateLimitProperties properties = new RateLimitProperties();
-        properties.setTrustedProxyEnabled(true);
+        properties.setTrustedProxyCidrs(List.of("10.0.0.0/8"));
         ClientIdentityResolver resolver = new ClientIdentityResolver(properties);
         MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("10.0.0.1");
         request.addHeader("X-Forwarded-For", "198.51.100.10, 10.0.0.1");
 
         RateLimitIdentity identity = resolver.resolve(request);
 
         assertThat(identity.value()).isEqualTo("198.51.100.10");
+    }
+
+    @Test
+    @DisplayName("신뢰하지 않는 발신지의 X-Forwarded-For는 무시한다")
+    void ignoresForwardedForFromUntrustedPeer() {
+        RateLimitProperties properties = new RateLimitProperties();
+        properties.setTrustedProxyCidrs(List.of("10.0.0.0/8"));
+        ClientIdentityResolver resolver = new ClientIdentityResolver(properties);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("203.0.113.20");
+        request.addHeader("X-Forwarded-For", "198.51.100.10");
+
+        RateLimitIdentity identity = resolver.resolve(request);
+
+        assertThat(identity.value()).isEqualTo("203.0.113.20");
+    }
+
+    @Test
+    @DisplayName("신뢰 프록시가 전달한 잘못된 IP는 무시한다")
+    void ignoresMalformedForwardedForAddress() {
+        RateLimitProperties properties = new RateLimitProperties();
+        properties.setTrustedProxyCidrs(List.of("10.0.0.0/8"));
+        ClientIdentityResolver resolver = new ClientIdentityResolver(properties);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("10.0.0.1");
+        request.addHeader("X-Forwarded-For", "spoofed-value");
+
+        RateLimitIdentity identity = resolver.resolve(request);
+
+        assertThat(identity.value()).isEqualTo("10.0.0.1");
     }
 }
