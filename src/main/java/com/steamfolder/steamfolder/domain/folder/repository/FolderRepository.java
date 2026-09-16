@@ -29,6 +29,6 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
     // 특정 유저의 폴더 개수 확인
     long countByUser(User user);
 
-    // 유저 탈퇴 시 연동 폴더 일괄 삭제
-    void deleteByUser(User user);
+    // 유저의 루트 폴더 목록 (삭제 시 Folder의 cascade가 전체 하위 트리에 적용됨)
+    List<Folder> findByUserAndParentFolderIsNull(User user);
 }

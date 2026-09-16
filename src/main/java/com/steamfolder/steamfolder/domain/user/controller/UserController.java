@@ -122,9 +122,15 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("쇼케이스 공개 범위가 성공적으로 수정되었습니다.", response));
     }
 
+    @DeleteMapping("/me/workspace")
+    public ResponseEntity<ApiResponse<Void>> resetWorkspace(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        userService.resetWorkspace(userPrincipal.getUserId());
+        return ResponseEntity.ok(ApiResponse.success("모든 폴더와 폴더에 등록된 게임이 초기화되었습니다.", null));
+    }
+
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> deleteAccount(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         userService.deleteAccount(userPrincipal.getUserId());
-        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴 및 연동 해제가 성공적으로 완료되었습니다.", null));
+        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴 및 사용자 데이터 삭제가 완료되었습니다.", null));
     }
 }

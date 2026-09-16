@@ -56,6 +56,9 @@ class AuthServiceTest {
     @Mock
     private SteamSyncService steamSyncService;
 
+    @Mock
+    private UserDataCleanupService userDataCleanupService;
+
     @Test
     @DisplayName("신규 유저 스팀 OpenID 최초 로그인 시 자동 회원가입, 라이브러리 동기화 및 토큰 발급 검증")
     void loginWithSteam_NewUser_Success() {
@@ -102,7 +105,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("탈퇴했던 유저가 다시 로그인 시 계정 복구(Reactivation), 라이브러리 동기화 및 재가입 처리")
+    @DisplayName("탈퇴했던 유저가 다시 로그인 시 잔여 데이터 정리, 라이브러리 동기화 및 신규 상태 재가입 처리")
     void loginWithSteam_SoftDeletedUser_Reactivates() {
         // given
         String steamId = "76561198000000009";
@@ -116,6 +119,7 @@ class AuthServiceTest {
                 .id(9L)
                 .steamId(steamId)
                 .username("OldGamer")
+                .likeCount(7)
                 .deletedAt(LocalDateTime.now().minusDays(10))
                 .build();
 
@@ -132,7 +136,9 @@ class AuthServiceTest {
         assertThat(softDeletedUser.isDeleted()).isFalse();
         assertThat(softDeletedUser.getDeletedAt()).isNull();
         assertThat(softDeletedUser.getUsername()).isEqualTo("ReturnedGamer");
+        assertThat(softDeletedUser.getLikeCount()).isZero();
         assertThat(response.getAccessToken()).isEqualTo("reactivated-access-token");
+        verify(userDataCleanupService).purgeAccountData(softDeletedUser);
         verify(steamSyncService).syncUserGames(softDeletedUser);
     }
 

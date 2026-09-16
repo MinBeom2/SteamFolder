@@ -81,11 +81,20 @@ public class User extends BaseTimeEntity {
         this.deletedAt = null;
         this.isPublic = true;
         this.themeColor = "#1A1B26";
+        this.likeCount = 0;
         this.syncSteamProfile(username, avatarUrl);
     }
 
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
+        this.isPublic = false;
+        this.likeCount = 0;
+    }
+
+    public void decrementLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
     }
 
     public boolean isDeleted() {

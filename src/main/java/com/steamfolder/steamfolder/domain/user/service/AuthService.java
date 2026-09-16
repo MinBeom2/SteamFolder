@@ -34,6 +34,7 @@ public class AuthService {
     private final SteamOpenIdValidator steamOpenIdValidator;
     private final SteamApiClient steamApiClient;
     private final SteamSyncService steamSyncService;
+    private final UserDataCleanupService userDataCleanupService;
 
     @Transactional
     public AuthResponse loginWithSteam(SteamLoginRequest request) {
@@ -90,8 +91,9 @@ public class AuthService {
             user = optionalUser.get();
             if (user.isDeleted()) {
                 isNewUser = true;
+                userDataCleanupService.purgeAccountData(user);
                 user.reactivate(realUsername, realAvatarUrl);
-                log.info("탈퇴 유저 재가입 및 계정 복구 완료: userId={}, steamId={}, username={}", user.getId(), user.getSteamId(), user.getUsername());
+                log.info("탈퇴 유저 신규 상태 재가입 완료: userId={}, steamId={}, username={}", user.getId(), user.getSteamId(), user.getUsername());
             } else {
                 isNewUser = false;
                 user.syncSteamProfile(realUsername, realAvatarUrl);

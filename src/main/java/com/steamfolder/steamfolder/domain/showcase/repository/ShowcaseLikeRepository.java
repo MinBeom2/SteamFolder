@@ -23,6 +23,8 @@ public interface ShowcaseLikeRepository extends JpaRepository<ShowcaseLike, Long
 
     void deleteByUserAndTargetUser(User user, User targetUser);
 
+    List<ShowcaseLike> findByUserOrTargetUser(User user, User targetUser);
+
     @Query("SELECT sl.targetUser.id FROM ShowcaseLike sl WHERE sl.user.id = :userId AND sl.targetUser.id IN :targetUserIds")
     Set<Long> findTargetUserIdsByUserIdAndTargetUserIdIn(@Param("userId") Long userId, @Param("targetUserIds") List<Long> targetUserIds);
 

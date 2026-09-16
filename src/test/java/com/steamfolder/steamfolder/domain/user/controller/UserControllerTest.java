@@ -164,6 +164,18 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("DELETE /api/v1/users/me/workspace - 작업 공간 초기화 200 OK")
+    void resetWorkspace_Returns200() throws Exception {
+        doNothing().when(userService).resetWorkspace(1L);
+
+        mockMvc.perform(delete("/api/v1/users/me/workspace")
+                        .with(authentication(testAuth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("모든 폴더와 폴더에 등록된 게임이 초기화되었습니다."));
+    }
+
+    @Test
     @DisplayName("DELETE /api/v1/users/me - 회원 탈퇴 200 OK")
     void deleteAccount_Returns200() throws Exception {
         // given
@@ -174,7 +186,7 @@ class UserControllerTest {
                         .with(authentication(testAuth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("회원 탈퇴 및 연동 해제가 성공적으로 완료되었습니다."));
+                .andExpect(jsonPath("$.message").value("회원 탈퇴 및 사용자 데이터 삭제가 완료되었습니다."));
     }
 
     @Test

@@ -6,7 +6,6 @@ import com.steamfolder.steamfolder.domain.user.dto.request.UpdateProfileRequest;
 import com.steamfolder.steamfolder.domain.user.dto.request.UpdateVisibilityRequest;
 import com.steamfolder.steamfolder.domain.user.dto.response.UserResponse;
 import com.steamfolder.steamfolder.domain.user.entity.User;
-import com.steamfolder.steamfolder.domain.user.repository.RefreshTokenRepository;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +31,7 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private RefreshTokenRepository refreshTokenRepository;
+    private UserDataCleanupService userDataCleanupService;
 
     @Test
     @DisplayName("내 프로필 조회 성공 검증")
@@ -108,7 +107,22 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("회원 탈퇴 시 RefreshToken 삭제 및 Soft Delete 처리 검증")
+    @DisplayName("작업 공간 초기화 시 모든 폴더와 폴더 게임 삭제를 위임한다")
+    void resetWorkspace_Success() {
+        User user = User.builder()
+                .id(1L)
+                .steamId("76561198000000001")
+                .build();
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+        userService.resetWorkspace(1L);
+
+        verify(userDataCleanupService).resetWorkspace(user);
+        assertThat(user.isDeleted()).isFalse();
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 시 사용자 데이터 즉시 삭제 및 Soft Delete 처리 검증")
     void deleteAccount_Success() {
         // given
         User user = User.builder()
@@ -122,9 +136,11 @@ class UserServiceTest {
         userService.deleteAccount(1L);
 
         // then
-        verify(refreshTokenRepository).deleteByUser(user);
+        verify(userDataCleanupService).purgeAccountData(user);
         assertThat(user.isDeleted()).isTrue();
         assertThat(user.getDeletedAt()).isNotNull();
+        assertThat(user.isPublic()).isFalse();
+        assertThat(user.getLikeCount()).isZero();
     }
 
     @Test

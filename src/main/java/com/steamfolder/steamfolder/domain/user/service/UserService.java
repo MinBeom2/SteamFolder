@@ -6,7 +6,6 @@ import com.steamfolder.steamfolder.domain.user.dto.request.UpdateProfileRequest;
 import com.steamfolder.steamfolder.domain.user.dto.request.UpdateVisibilityRequest;
 import com.steamfolder.steamfolder.domain.user.dto.response.UserResponse;
 import com.steamfolder.steamfolder.domain.user.entity.User;
-import com.steamfolder.steamfolder.domain.user.repository.RefreshTokenRepository;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserDataCleanupService userDataCleanupService;
 
     public UserResponse getMyProfile(Long userId) {
         User user = findActiveUserById(userId);
@@ -44,13 +43,17 @@ public class UserService {
     }
 
     @Transactional
+    public void resetWorkspace(Long userId) {
+        User user = findActiveUserById(userId);
+        userDataCleanupService.resetWorkspace(user);
+        log.info("유저 작업 공간 초기화 완료: userId={}", userId);
+    }
+
+    @Transactional
     public void deleteAccount(Long userId) {
         User user = findActiveUserById(userId);
 
-        // 1. 유저의 RefreshToken 연관 데이터 삭제
-        refreshTokenRepository.deleteByUser(user);
-
-        // 2. 유저 계정 Soft Delete 처리
+        userDataCleanupService.purgeAccountData(user);
         user.softDelete();
         log.info("유저 회원 탈퇴 완료: userId={}, steamId={}", userId, user.getSteamId());
     }
