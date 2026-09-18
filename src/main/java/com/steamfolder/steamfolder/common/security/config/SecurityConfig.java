@@ -49,7 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/rankings/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/games/**").permitAll()
                         // 3. 인프라 및 시스템
-                        .requestMatchers("/actuator/**", "/error").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/error").permitAll()
                         // 4. 그 외 모든 API 요청은 인증 필요
                         .anyRequest().authenticated()
                 )

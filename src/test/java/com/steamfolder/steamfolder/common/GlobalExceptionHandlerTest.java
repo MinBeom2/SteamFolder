@@ -4,6 +4,7 @@ import com.steamfolder.steamfolder.common.dto.ApiResponse;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.common.exception.GlobalExceptionHandler;
+import com.steamfolder.steamfolder.common.monitoring.DiscordAlertService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +13,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @WebMvcTest(controllers = GlobalExceptionHandlerTest.TestExceptionController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -26,6 +32,9 @@ class GlobalExceptionHandlerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private DiscordAlertService discordAlertService;
 
     @RestController
     @Component
@@ -66,6 +75,8 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.code").value("U001"))
                 .andExpect(jsonPath("$.message").value("존재하지 않는 유저입니다."))
                 .andExpect(jsonPath("$.timestamp").exists());
+
+        verify(discordAlertService, never()).notifyUnhandledError(any(), any(), any());
     }
 
     @Test
@@ -76,5 +87,11 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("C004"))
                 .andExpect(jsonPath("$.message").value("서버 내부 오류가 발생했습니다."));
+
+        verify(discordAlertService).notifyUnhandledError(
+                any(RuntimeException.class),
+                eq("GET"),
+                eq("/test/unhandled-exception")
+        );
     }
 }

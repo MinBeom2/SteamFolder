@@ -1,7 +1,10 @@
 package com.steamfolder.steamfolder.common.exception;
 
 import com.steamfolder.steamfolder.common.dto.ErrorResponse;
+import com.steamfolder.steamfolder.common.monitoring.DiscordAlertService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -14,6 +17,12 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final ObjectProvider<DiscordAlertService> discordAlertServiceProvider;
+
+    public GlobalExceptionHandler(ObjectProvider<DiscordAlertService> discordAlertServiceProvider) {
+        this.discordAlertServiceProvider = discordAlertServiceProvider;
+    }
 
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
@@ -59,8 +68,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<ErrorResponse> handleException(Exception e) {
+    protected ResponseEntity<ErrorResponse> handleException(Exception e, HttpServletRequest request) {
         log.error("Unhandled Exception: ", e);
+        discordAlertServiceProvider.ifAvailable(alertService ->
+                alertService.notifyUnhandledError(e, request.getMethod(), request.getRequestURI())
+        );
         ErrorResponse response = ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(response, ErrorCode.INTERNAL_SERVER_ERROR.getStatus());
     }

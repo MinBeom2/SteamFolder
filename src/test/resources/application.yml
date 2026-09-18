@@ -22,3 +22,9 @@ jwt:
   secret: dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3RpbmctcHVycG9zZXMtb25seS1wbGVhc2UtZG8tbm90LXVzZS1pbi1wcm9kdWN0aW9uLTIwMjYwODI0
   access-token-expiration-seconds: 3600
   refresh-token-expiration-seconds: 604800
+
+monitoring:
+  health:
+    enabled: false
+  discord:
+    enabled: false

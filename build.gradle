@@ -22,6 +22,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webflux' // Steam API 비동기 호출용 WebClient
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     // 2. Database (JPA / MySQL)
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
