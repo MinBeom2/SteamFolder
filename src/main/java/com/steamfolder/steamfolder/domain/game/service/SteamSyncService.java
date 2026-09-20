@@ -59,14 +59,14 @@ public class SteamSyncService {
 
         // 3. 스팀 서버에서 보유 게임 목록 수신
         SteamOwnedGamesResponseDto.ResponseData ownedGamesData = steamApiClient.getUserOwnedGames(user.getSteamId());
-        List<SteamOwnedGamesResponseDto.SteamGameDto> games = (ownedGamesData != null
-                && ownedGamesData.getGames() != null)
-                        ? ownedGamesData.getGames()
-                        : Collections.emptyList();
-
-        if (games.isEmpty() && summaryOpt.isPresent() && !summaryOpt.get().isPublic()) {
+        if (ownedGamesData == null || ownedGamesData.getGameCount() == null) {
+            log.warn("User {} owned games are not visible to the current Steam API key", user.getSteamId());
             throw new CustomException(ErrorCode.STEAM_PROFILE_PRIVATE);
         }
+
+        List<SteamOwnedGamesResponseDto.SteamGameDto> games = (ownedGamesData.getGames() != null)
+                        ? ownedGamesData.getGames()
+                        : Collections.emptyList();
 
         int syncedCount = 0;
         int newlyAddedCount = 0;

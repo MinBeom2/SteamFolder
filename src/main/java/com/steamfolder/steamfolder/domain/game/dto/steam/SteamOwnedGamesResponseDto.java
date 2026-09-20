@@ -21,7 +21,7 @@ public class SteamOwnedGamesResponseDto {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ResponseData {
         @JsonProperty("game_count")
-        private int gameCount;
+        private Integer gameCount;
 
         @JsonProperty("games")
         private List<SteamGameDto> games = new ArrayList<>();

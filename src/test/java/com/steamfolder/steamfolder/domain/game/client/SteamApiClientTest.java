@@ -236,4 +236,52 @@ class SteamApiClientTest {
         // then
         assertThat(statsOpt).isEmpty();
     }
+
+    @Test
+    @DisplayName("Steam GetPlayerAchievements 403 비공개 응답 시 G004 예외 변환 검증")
+    void getPlayerAchievements_PrivateProfile_ThrowsSteamProfilePrivate() {
+        // given
+        mockWebServer.enqueue(new MockResponse().setResponseCode(403));
+
+        // when & then
+        assertThatThrownBy(() -> steamApiClient.getPlayerAchievements("76561198000000001", 1091500L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.STEAM_PROFILE_PRIVATE);
+    }
+
+    @Test
+    @DisplayName("Steam GetPlayerAchievements 400 실패 본문이 비공개를 나타내면 G004 예외 변환 검증")
+    void getPlayerAchievements_PrivateProfileBody_ThrowsSteamProfilePrivate() {
+        // given
+        String jsonResponse = """
+                {
+                    "playerstats": {
+                        "success": false,
+                        "error": "Profile is not public"
+                    }
+                }
+                """;
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(400)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody(jsonResponse));
+
+        // when & then
+        assertThatThrownBy(() -> steamApiClient.getPlayerAchievements("76561198000000001", 1091500L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.STEAM_PROFILE_PRIVATE);
+    }
+
+    @Test
+    @DisplayName("Steam GetPlayerAchievements 500 서버 오류 시 G003 예외 변환 검증")
+    void getPlayerAchievements_ServerError_ThrowsSteamApiError() {
+        // given
+        mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+        // when & then
+        assertThatThrownBy(() -> steamApiClient.getPlayerAchievements("76561198000000001", 1091500L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.STEAM_API_ERROR);
+    }
 }

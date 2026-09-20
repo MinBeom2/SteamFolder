@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -102,6 +102,37 @@ class AuthServiceTest {
         verify(userRepository).save(any(User.class));
         verify(steamSyncService).syncUserGames(mockUser); // 자동 동기화 호출 검증
         verify(refreshTokenRepository).save(any(RefreshToken.class));
+    }
+
+    @Test
+    @DisplayName("신규 유저의 Steam 게임 정보가 비공개이면 G004를 전달하고 토큰을 발급하지 않는다")
+    void loginWithSteam_NewUserPrivateProfile_ThrowsSteamProfilePrivate() {
+        // given
+        String steamId = "76561198000000008";
+        SteamLoginRequest request = SteamLoginRequest.builder()
+                .steamId(steamId)
+                .username("PrivateGamer")
+                .build();
+
+        User savedUser = User.builder()
+                .id(8L)
+                .steamId(steamId)
+                .username("PrivateGamer")
+                .build();
+
+        given(userRepository.findBySteamId(steamId)).willReturn(Optional.empty());
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
+        given(steamSyncService.syncUserGames(savedUser))
+                .willThrow(new CustomException(ErrorCode.STEAM_PROFILE_PRIVATE));
+
+        // when & then
+        assertThatThrownBy(() -> authService.loginWithSteam(request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.STEAM_PROFILE_PRIVATE);
+
+        verify(jwtTokenProvider, never()).createAccessToken(any(), any(), any());
+        verify(jwtTokenProvider, never()).createRefreshToken(any(), any(), any());
+        verifyNoInteractions(refreshTokenRepository);
     }
 
     @Test

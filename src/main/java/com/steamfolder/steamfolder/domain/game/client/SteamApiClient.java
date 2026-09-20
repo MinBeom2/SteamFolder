@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -75,7 +76,7 @@ public class SteamApiClient {
     public SteamOwnedGamesResponseDto.ResponseData getUserOwnedGames(String steamId) {
         if (!StringUtils.hasText(apiKey)) {
             log.warn("Steam Web API Key is missing. Skipping Steam API call for getUserOwnedGames.");
-            return new SteamOwnedGamesResponseDto.ResponseData();
+            throw new CustomException(ErrorCode.STEAM_API_ERROR);
         }
 
         try {
@@ -84,6 +85,8 @@ public class SteamApiClient {
                             + "?key={key}&steamid={steamId}&format=json&include_appinfo=true&include_played_free_games=true",
                             apiKey, steamId)
                     .retrieve()
+                    .onStatus(status -> status.value() == 403, clientResponse ->
+                            Mono.error(new CustomException(ErrorCode.STEAM_PROFILE_PRIVATE)))
                     .onStatus(HttpStatusCode::isError, clientResponse ->
                             Mono.error(new CustomException(ErrorCode.STEAM_API_ERROR)))
                     .bodyToMono(SteamOwnedGamesResponseDto.class)
@@ -172,7 +175,7 @@ public class SteamApiClient {
     public Optional<SteamPlayerAchievementsResponseDto.PlayerStats> getPlayerAchievements(String steamId, Long appId) {
         if (apiKey == null || apiKey.isBlank()) {
             log.warn("Steam API Key is missing. Skipping getPlayerAchievements for steamId: {}, appId: {}", steamId, appId);
-            return Optional.empty();
+            throw new CustomException(ErrorCode.STEAM_API_ERROR);
         }
 
         try {
@@ -180,19 +183,42 @@ public class SteamApiClient {
                     .uri(steamApiBaseUrl + "/ISteamUserStats/GetPlayerAchievements/v0001/?key={apiKey}&steamid={steamId}&appid={appId}&l=korean",
                             apiKey, steamId, appId)
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, clientResponse -> Mono.empty())
+                    .onStatus(status -> status.value() == 403, clientResponse ->
+                            Mono.error(new CustomException(ErrorCode.STEAM_PROFILE_PRIVATE)))
+                    .onStatus(status -> status.value() == 400, clientResponse -> Mono.empty())
+                    .onStatus(HttpStatusCode::isError, clientResponse ->
+                            Mono.error(new CustomException(ErrorCode.STEAM_API_ERROR)))
                     .bodyToMono(SteamPlayerAchievementsResponseDto.class)
                     .timeout(TIMEOUT)
                     .block();
 
-            if (response == null || response.getPlayerStats() == null || !response.getPlayerStats().isSuccess()) {
+            if (response == null || response.getPlayerStats() == null) {
                 return Optional.empty();
             }
 
-            return Optional.of(response.getPlayerStats());
+            SteamPlayerAchievementsResponseDto.PlayerStats playerStats = response.getPlayerStats();
+            if (!playerStats.isSuccess()) {
+                if (isPrivateProfileError(playerStats.getError())) {
+                    throw new CustomException(ErrorCode.STEAM_PROFILE_PRIVATE);
+                }
+                return Optional.empty();
+            }
+
+            return Optional.of(playerStats);
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
-            log.warn("Failed to fetch player achievements from Steam API for steamId: {}, appId: {}. Details: {}", steamId, appId, e.getMessage());
-            return Optional.empty();
+            log.error("Failed to fetch player achievements from Steam API for steamId: {}, appId: {}", steamId, appId, e);
+            throw new CustomException(ErrorCode.STEAM_API_ERROR);
         }
+    }
+
+    private boolean isPrivateProfileError(String errorMessage) {
+        if (!StringUtils.hasText(errorMessage)) {
+            return false;
+        }
+
+        String normalizedMessage = errorMessage.toLowerCase(Locale.ROOT);
+        return normalizedMessage.contains("private") || normalizedMessage.contains("not public");
     }
 }

@@ -134,6 +134,48 @@ class SteamSyncServiceTest {
         }
 
         @Test
+        @DisplayName("실패: 프로필은 공개지만 게임 상세 정보가 비공개이면 G004 예외가 발생한다")
+        void syncUserGames_PrivateGameDetails_ThrowsException() {
+            // given
+            SteamPlayerSummaryResponseDto.PlayerDto publicPlayer = new SteamPlayerSummaryResponseDto.PlayerDto();
+            ReflectionTestUtils.setField(publicPlayer, "steamId", testUser.getSteamId());
+            ReflectionTestUtils.setField(publicPlayer, "communityVisibilityState", 3);
+            given(steamApiClient.getPlayerSummary(testUser.getSteamId())).willReturn(Optional.of(publicPlayer));
+
+            SteamOwnedGamesResponseDto.ResponseData hiddenGamesData = new SteamOwnedGamesResponseDto.ResponseData();
+            given(steamApiClient.getUserOwnedGames(testUser.getSteamId())).willReturn(hiddenGamesData);
+
+            // when & then
+            assertThatThrownBy(() -> steamSyncService.syncUserGames(testUser))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.STEAM_PROFILE_PRIVATE);
+
+            verify(cooldownManager, never()).applyCooldown(anyString());
+        }
+
+        @Test
+        @DisplayName("성공: 공개 계정이 실제로 보유한 게임이 0개이면 정상 동기화한다")
+        void syncUserGames_PublicProfileWithZeroGames_Success() {
+            // given
+            SteamPlayerSummaryResponseDto.PlayerDto publicPlayer = new SteamPlayerSummaryResponseDto.PlayerDto();
+            ReflectionTestUtils.setField(publicPlayer, "steamId", testUser.getSteamId());
+            ReflectionTestUtils.setField(publicPlayer, "communityVisibilityState", 3);
+            given(steamApiClient.getPlayerSummary(testUser.getSteamId())).willReturn(Optional.of(publicPlayer));
+
+            SteamOwnedGamesResponseDto.ResponseData emptyGamesData = new SteamOwnedGamesResponseDto.ResponseData();
+            ReflectionTestUtils.setField(emptyGamesData, "gameCount", 0);
+            given(steamApiClient.getUserOwnedGames(testUser.getSteamId())).willReturn(emptyGamesData);
+
+            // when
+            SyncResultResponseDto result = steamSyncService.syncUserGames(testUser);
+
+            // then
+            assertThat(result.getSyncedGameCount()).isZero();
+            assertThat(result.getNewlyAddedCount()).isZero();
+            verify(cooldownManager).applyCooldown(testUser.getSteamId());
+        }
+
+        @Test
         @DisplayName("실패: 쿨다운 제한 중인 경우 예외 발생")
         void syncUserGames_CooldownActive_ThrowsException() {
             // given
@@ -240,6 +282,35 @@ class SteamSyncServiceTest {
             assertThat(response.getAchievementRate()).isNull();
             assertThat(userGame.getTotalAchievements()).isEqualTo(0);
             assertThat(userGame.getAchievementRate()).isNull();
+        }
+
+        @Test
+        @DisplayName("실패: 업적 정보가 비공개이면 G004를 그대로 전달하고 기존 업적 값을 유지한다")
+        void syncUserGameAchievements_PrivateProfile_ThrowsException() {
+            // given
+            Game game = Game.builder().appId(1091500L).name("Cyberpunk 2077").build();
+            UserGame userGame = UserGame.builder()
+                    .id(3L)
+                    .user(testUser)
+                    .game(game)
+                    .totalAchievements(50)
+                    .achievedAchievements(40)
+                    .achievementRate(80.0)
+                    .build();
+
+            given(userGameRepository.findByUserAndGame_AppId(testUser, 1091500L))
+                    .willReturn(Optional.of(userGame));
+            given(steamApiClient.getPlayerAchievements(testUser.getSteamId(), 1091500L))
+                    .willThrow(new CustomException(ErrorCode.STEAM_PROFILE_PRIVATE));
+
+            // when & then
+            assertThatThrownBy(() -> steamSyncService.syncUserGameAchievements(testUser, 1091500L, true))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.STEAM_PROFILE_PRIVATE);
+
+            assertThat(userGame.getTotalAchievements()).isEqualTo(50);
+            assertThat(userGame.getAchievedAchievements()).isEqualTo(40);
+            assertThat(userGame.getAchievementRate()).isEqualTo(80.0);
         }
 
         @Test
