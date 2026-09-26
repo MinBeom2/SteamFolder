@@ -6,10 +6,12 @@ import com.steamfolder.steamfolder.domain.feedback.dto.request.CreateFeedbackReq
 import com.steamfolder.steamfolder.domain.feedback.dto.response.CreateFeedbackResponse;
 import com.steamfolder.steamfolder.domain.feedback.entity.Feedback;
 import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackAnalysisStatus;
+import com.steamfolder.steamfolder.domain.feedback.event.FeedbackCreatedEvent;
 import com.steamfolder.steamfolder.domain.feedback.repository.FeedbackRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ public class FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public CreateFeedbackResponse createFeedback(Long userId, CreateFeedbackRequest request) {
@@ -42,7 +45,9 @@ public class FeedbackService {
                 .analysisStatus(FeedbackAnalysisStatus.PENDING)
                 .build();
 
-        return CreateFeedbackResponse.from(feedbackRepository.save(feedback));
+        Feedback savedFeedback = feedbackRepository.save(feedback);
+        eventPublisher.publishEvent(new FeedbackCreatedEvent(savedFeedback.getId()));
+        return CreateFeedbackResponse.from(savedFeedback);
     }
 
     private String normalizeContent(String content) {

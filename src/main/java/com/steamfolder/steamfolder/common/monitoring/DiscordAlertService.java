@@ -78,6 +78,35 @@ public class DiscordAlertService {
         webhookClient.send(new DiscordWebhookPayload(limit(message)));
     }
 
+    public boolean notifyCriticalFeedback(Long feedbackId, String category, String summary) {
+        String fingerprint = "FEEDBACK:P0:" + feedbackId;
+        if (!isEnabled() || !reserve(fingerprint)) {
+            return false;
+        }
+
+        String message = "🆘 **SteamFolder P0 피드백**\n"
+                + "- 환경: `" + sanitize(properties.getDiscord().getEnvironment()) + "`\n"
+                + "- 시각: `" + Instant.now() + "`\n"
+                + "- 피드백 ID: `" + feedbackId + "`\n"
+                + "- 카테고리: `" + sanitize(safe(category)) + "`\n"
+                + "- AI 요약: " + sanitize(safe(summary));
+
+        return webhookClient.send(new DiscordWebhookPayload(limit(message)));
+    }
+
+    public boolean notifyFeedbackDailySummary(String batchKey, List<String> summaryLines) {
+        if (summaryLines.isEmpty() || !isEnabled() || !reserve("FEEDBACK:DAILY:" + batchKey)) {
+            return false;
+        }
+
+        String message = "📬 **SteamFolder 일일 피드백 요약**\n"
+                + "- 환경: `" + sanitize(properties.getDiscord().getEnvironment()) + "`\n"
+                + "- 시각: `" + Instant.now() + "`\n"
+                + sanitize(String.join("\n", summaryLines));
+
+        return webhookClient.send(new DiscordWebhookPayload(limit(message)));
+    }
+
     private boolean isEnabled() {
         return properties.getDiscord().isEnabled();
     }

@@ -7,6 +7,7 @@ import com.steamfolder.steamfolder.domain.feedback.dto.response.CreateFeedbackRe
 import com.steamfolder.steamfolder.domain.feedback.entity.Feedback;
 import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackAnalysisStatus;
 import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackCategory;
+import com.steamfolder.steamfolder.domain.feedback.event.FeedbackCreatedEvent;
 import com.steamfolder.steamfolder.domain.feedback.repository.FeedbackRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import com.steamfolder.steamfolder.domain.user.repository.UserRepository;
@@ -17,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -38,6 +40,9 @@ class FeedbackServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @Test
     @DisplayName("피드백 제출 시 내용을 정규화하고 PENDING 상태로 저장")
@@ -78,6 +83,10 @@ class FeedbackServiceTest {
         assertThat(savedFeedback.getCategory()).isEqualTo(FeedbackCategory.BUG_REPORT);
         assertThat(savedFeedback.getContent()).isEqualTo("스팀 동기화 진행률이 멈춥니다.");
         assertThat(savedFeedback.getAnalysisStatus()).isEqualTo(FeedbackAnalysisStatus.PENDING);
+        assertThat(savedFeedback.getPriority()).isNull();
+        assertThat(savedFeedback.getAiSummary()).isNull();
+        assertThat(savedFeedback.getAnalysisRetryCount()).isZero();
+        verify(eventPublisher).publishEvent(new FeedbackCreatedEvent(102L));
     }
 
     @Test

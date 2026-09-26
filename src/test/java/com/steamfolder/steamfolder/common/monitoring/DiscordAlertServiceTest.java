@@ -12,6 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class DiscordAlertServiceTest {
 
@@ -81,5 +82,40 @@ class DiscordAlertServiceTest {
         alertService.notifyUnhandledError(new RuntimeException("failure"), "GET", "/api/v1/test");
 
         verifyNoInteractions(webhookClient);
+    }
+
+    @Test
+    @DisplayName("P0 피드백 알림 성공 여부를 호출자에게 반환한다")
+    void sendsCriticalFeedbackAlert() {
+        when(webhookClient.send(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+
+        boolean sent = alertService.notifyCriticalFeedback(102L, "BUG_REPORT", "로그인 장애");
+
+        ArgumentCaptor<DiscordWebhookPayload> payloadCaptor = ArgumentCaptor.forClass(DiscordWebhookPayload.class);
+        verify(webhookClient).send(payloadCaptor.capture());
+        assertThat(sent).isTrue();
+        assertThat(payloadCaptor.getValue().content())
+                .contains("P0 피드백")
+                .contains("102")
+                .contains("로그인 장애");
+    }
+
+    @Test
+    @DisplayName("일일 피드백 요약을 중요도순 메시지로 전송한다")
+    void sendsFeedbackDailySummary() {
+        when(webhookClient.send(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+
+        boolean sent = alertService.notifyFeedbackDailySummary(
+                "201-202",
+                java.util.List.of("[P1] #201 BUG_REPORT - 중요 오류", "[P2] #202 GENERAL - 일반 의견")
+        );
+
+        ArgumentCaptor<DiscordWebhookPayload> payloadCaptor = ArgumentCaptor.forClass(DiscordWebhookPayload.class);
+        verify(webhookClient).send(payloadCaptor.capture());
+        assertThat(sent).isTrue();
+        assertThat(payloadCaptor.getValue().content())
+                .contains("일일 피드백 요약")
+                .contains("[P1] #201")
+                .contains("[P2] #202");
     }
 }

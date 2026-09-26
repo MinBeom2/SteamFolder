@@ -28,3 +28,7 @@ monitoring:
     enabled: false
   discord:
     enabled: false
+
+feedback:
+  analysis:
+    enabled: false
