@@ -36,7 +36,7 @@ public class FeedbackAnalysisTransactionService {
                 && feedback.getUpdatedAt() != null
                 && feedback.getUpdatedAt().isBefore(staleBefore)
                 && feedback.getAnalysisRetryCount() >= maxAttempts) {
-            feedback.failStaleAnalysis(FeedbackAnalysisFailureReason.N8N_TIMEOUT);
+            feedback.failStaleAnalysis(FeedbackAnalysisFailureReason.AI_TIMEOUT);
             return Optional.empty();
         }
 

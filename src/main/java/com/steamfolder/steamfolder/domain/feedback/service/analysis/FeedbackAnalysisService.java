@@ -2,7 +2,7 @@ package com.steamfolder.steamfolder.domain.feedback.service.analysis;
 
 import com.steamfolder.steamfolder.common.monitoring.DiscordAlertService;
 import com.steamfolder.steamfolder.domain.feedback.client.FeedbackAnalysisException;
-import com.steamfolder.steamfolder.domain.feedback.client.N8nFeedbackAnalysisClient;
+import com.steamfolder.steamfolder.domain.feedback.client.OpenAiFeedbackAnalysisClient;
 import com.steamfolder.steamfolder.domain.feedback.config.FeedbackAnalysisProperties;
 import com.steamfolder.steamfolder.domain.feedback.dto.analysis.FeedbackAnalysisRequest;
 import com.steamfolder.steamfolder.domain.feedback.dto.analysis.FeedbackAnalysisResponse;
@@ -23,7 +23,7 @@ public class FeedbackAnalysisService {
 
     private final FeedbackAnalysisProperties properties;
     private final FeedbackAnalysisTransactionService transactionService;
-    private final N8nFeedbackAnalysisClient analysisClient;
+    private final OpenAiFeedbackAnalysisClient analysisClient;
     private final DiscordAlertService discordAlertService;
 
     @Async("feedbackAnalysisTaskExecutor")

@@ -2,7 +2,7 @@ package com.steamfolder.steamfolder.domain.feedback.service.analysis;
 
 import com.steamfolder.steamfolder.common.monitoring.DiscordAlertService;
 import com.steamfolder.steamfolder.domain.feedback.client.FeedbackAnalysisException;
-import com.steamfolder.steamfolder.domain.feedback.client.N8nFeedbackAnalysisClient;
+import com.steamfolder.steamfolder.domain.feedback.client.OpenAiFeedbackAnalysisClient;
 import com.steamfolder.steamfolder.domain.feedback.config.FeedbackAnalysisProperties;
 import com.steamfolder.steamfolder.domain.feedback.dto.analysis.FeedbackAnalysisResponse;
 import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackAnalysisFailureReason;
@@ -27,7 +27,7 @@ class FeedbackAnalysisServiceTest {
 
     private FeedbackAnalysisProperties properties;
     private FeedbackAnalysisTransactionService transactionService;
-    private N8nFeedbackAnalysisClient analysisClient;
+    private OpenAiFeedbackAnalysisClient analysisClient;
     private DiscordAlertService discordAlertService;
     private FeedbackAnalysisService analysisService;
 
@@ -36,7 +36,7 @@ class FeedbackAnalysisServiceTest {
         properties = new FeedbackAnalysisProperties();
         properties.setEnabled(true);
         transactionService = mock(FeedbackAnalysisTransactionService.class);
-        analysisClient = mock(N8nFeedbackAnalysisClient.class);
+        analysisClient = mock(OpenAiFeedbackAnalysisClient.class);
         discordAlertService = mock(DiscordAlertService.class);
         analysisService = new FeedbackAnalysisService(
                 properties,
@@ -80,12 +80,12 @@ class FeedbackAnalysisServiceTest {
     }
 
     @Test
-    @DisplayName("n8n 분석 실패 시 원인 코드를 저장하고 피드백 제출 결과에는 영향을 주지 않는다")
+    @DisplayName("OpenAI 분석 실패 시 원인 코드를 저장하고 Discord 알림은 보내지 않는다")
     void storesAnalysisFailureReason() {
         FeedbackAnalysisTarget target = target();
         when(transactionService.startAnalysis(eq(102L), eq(3), any())).thenReturn(Optional.of(target));
         when(analysisClient.analyze(any())).thenThrow(new FeedbackAnalysisException(
-                FeedbackAnalysisFailureReason.N8N_TIMEOUT,
+                FeedbackAnalysisFailureReason.AI_TIMEOUT,
                 "timeout"
         ));
 
@@ -94,7 +94,7 @@ class FeedbackAnalysisServiceTest {
         verify(transactionService).failAnalysis(
                 102L,
                 1,
-                FeedbackAnalysisFailureReason.N8N_TIMEOUT
+                FeedbackAnalysisFailureReason.AI_TIMEOUT
         );
         verify(discordAlertService, never()).notifyCriticalFeedback(any(), any(), any());
     }

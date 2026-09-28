@@ -17,8 +17,9 @@ import java.time.Duration;
 public class FeedbackAnalysisProperties {
 
     private boolean enabled = false;
-    private String webhookUrl = "";
-    private String webhookSecret = "";
+    private String openaiUrl = "https://api.openai.com/v1/responses";
+    private String openaiApiKey = "";
+    private String openaiModel = "gpt-6-luna";
     private Duration requestTimeout = Duration.ofSeconds(30);
     @Min(1)
     private int maxAttempts = 3;
@@ -34,8 +35,10 @@ public class FeedbackAnalysisProperties {
     @Min(1)
     private int dailySummaryMaxItems = 100;
 
-    @AssertTrue(message = "feedback analysis requires both webhook URL and webhook secret when enabled")
-    public boolean isWebhookConfigurationValid() {
-        return !enabled || (StringUtils.hasText(webhookUrl) && StringUtils.hasText(webhookSecret));
+    @AssertTrue(message = "feedback analysis requires OpenAI URL, API key and model when enabled")
+    public boolean isOpenAiConfigurationValid() {
+        return !enabled || (StringUtils.hasText(openaiUrl)
+                && StringUtils.hasText(openaiApiKey)
+                && StringUtils.hasText(openaiModel));
     }
 }

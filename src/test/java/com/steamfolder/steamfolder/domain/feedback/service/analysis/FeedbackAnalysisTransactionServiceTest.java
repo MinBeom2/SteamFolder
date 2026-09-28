@@ -44,7 +44,7 @@ class FeedbackAnalysisTransactionServiceTest {
     }
 
     @Test
-    @DisplayName("최대 횟수까지 처리 중이던 작업이 멈추면 FAILED와 N8N_TIMEOUT으로 종료한다")
+    @DisplayName("최대 횟수까지 처리 중이던 작업이 멈추면 FAILED와 AI_TIMEOUT으로 종료한다")
     void failsExhaustedStaleProcessing() {
         Feedback feedback = Feedback.builder()
                 .id(1L)
@@ -66,7 +66,7 @@ class FeedbackAnalysisTransactionServiceTest {
         assertThat(target).isEmpty();
         assertThat(feedback.getAnalysisStatus()).isEqualTo(FeedbackAnalysisStatus.FAILED);
         assertThat(feedback.getAnalysisFailureReason())
-                .isEqualTo(FeedbackAnalysisFailureReason.N8N_TIMEOUT);
+                .isEqualTo(FeedbackAnalysisFailureReason.AI_TIMEOUT);
     }
 
     @Test
