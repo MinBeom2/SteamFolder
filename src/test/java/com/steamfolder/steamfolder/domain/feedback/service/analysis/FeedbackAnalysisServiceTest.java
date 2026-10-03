@@ -94,7 +94,8 @@ class FeedbackAnalysisServiceTest {
         verify(transactionService).failAnalysis(
                 102L,
                 1,
-                FeedbackAnalysisFailureReason.AI_TIMEOUT
+                FeedbackAnalysisFailureReason.AI_TIMEOUT,
+                3
         );
         verify(discordAlertService, never()).notifyCriticalFeedback(any(), any(), any());
     }

@@ -20,6 +20,26 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     void deleteByUser(User user);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select feedback from Feedback feedback where feedback.user = :user order by feedback.id asc")
+    List<Feedback> findByUserForUpdate(@Param("user") User user);
+
+    @Query("""
+            select feedback.id from Feedback feedback
+            where (feedback.analysisStatus = :completedStatus
+                   or (feedback.analysisStatus = :failedStatus
+                       and feedback.analysisRetryCount >= :maxAttempts))
+              and not exists (select sync.feedbackId from FeedbackNotionSync sync
+                              where sync.feedbackId = feedback.id)
+            order by feedback.id asc
+            """)
+    List<Long> findTerminalIdsWithoutNotionSync(
+            @Param("completedStatus") FeedbackAnalysisStatus completedStatus,
+            @Param("failedStatus") FeedbackAnalysisStatus failedStatus,
+            @Param("maxAttempts") int maxAttempts,
+            Pageable pageable
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select feedback from Feedback feedback where feedback.id = :feedbackId")
     Optional<Feedback> findByIdForUpdate(@Param("feedbackId") Long feedbackId);
 

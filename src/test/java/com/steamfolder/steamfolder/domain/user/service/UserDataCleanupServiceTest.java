@@ -1,6 +1,7 @@
 package com.steamfolder.steamfolder.domain.user.service;
 
 import com.steamfolder.steamfolder.domain.feedback.repository.FeedbackRepository;
+import com.steamfolder.steamfolder.domain.feedback.sync.FeedbackNotionSyncService;
 import com.steamfolder.steamfolder.domain.folder.entity.Folder;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
@@ -41,6 +42,9 @@ class UserDataCleanupServiceTest {
     private FeedbackRepository feedbackRepository;
 
     @Mock
+    private FeedbackNotionSyncService notionSyncService;
+
+    @Mock
     private RefreshTokenRepository refreshTokenRepository;
 
     @Test
@@ -53,7 +57,8 @@ class UserDataCleanupServiceTest {
         userDataCleanupService.resetWorkspace(user);
 
         verify(folderRepository).deleteAll(List.of(rootFolder));
-        verifyNoInteractions(userGameRepository, showcaseLikeRepository, feedbackRepository, refreshTokenRepository);
+        verifyNoInteractions(userGameRepository, showcaseLikeRepository, feedbackRepository,
+                notionSyncService, refreshTokenRepository);
     }
 
     @Test
@@ -74,6 +79,7 @@ class UserDataCleanupServiceTest {
         verify(folderRepository).deleteAll(List.of(rootFolder));
         verify(userGameRepository).deleteByUser(user);
         verify(showcaseLikeRepository).deleteAll(List.of(outgoingLike, incomingLike));
+        verify(notionSyncService).requestArchiveForUser(user);
         verify(feedbackRepository).deleteByUser(user);
         verify(refreshTokenRepository).deleteByUser(user);
         assertThat(targetUser.getLikeCount()).isEqualTo(2);

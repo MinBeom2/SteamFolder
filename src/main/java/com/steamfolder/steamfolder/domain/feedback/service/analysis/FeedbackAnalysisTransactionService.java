@@ -6,6 +6,7 @@ import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackAnalysisFailur
 import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackAnalysisStatus;
 import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackPriority;
 import com.steamfolder.steamfolder.domain.feedback.repository.FeedbackRepository;
+import com.steamfolder.steamfolder.domain.feedback.sync.FeedbackNotionSyncService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.Optional;
 public class FeedbackAnalysisTransactionService {
 
     private final FeedbackRepository feedbackRepository;
+    private final FeedbackNotionSyncService notionSyncService;
 
     @Transactional
     public Optional<FeedbackAnalysisTarget> startAnalysis(
@@ -37,6 +39,7 @@ public class FeedbackAnalysisTransactionService {
                 && feedback.getUpdatedAt().isBefore(staleBefore)
                 && feedback.getAnalysisRetryCount() >= maxAttempts) {
             feedback.failStaleAnalysis(FeedbackAnalysisFailureReason.AI_TIMEOUT);
+            notionSyncService.requestUpsert(feedbackId);
             return Optional.empty();
         }
 
@@ -69,6 +72,7 @@ public class FeedbackAnalysisTransactionService {
         }
 
         feedback.completeAnalysis(expectedAttempt, response.priority(), response.summary(), analyzedAt);
+        notionSyncService.requestUpsert(feedbackId);
         return true;
     }
 
@@ -76,10 +80,20 @@ public class FeedbackAnalysisTransactionService {
     public void failAnalysis(
             Long feedbackId,
             int expectedAttempt,
-            FeedbackAnalysisFailureReason failureReason
+            FeedbackAnalysisFailureReason failureReason,
+            int maxAttempts
     ) {
-        feedbackRepository.findByIdForUpdate(feedbackId)
-                .ifPresent(feedback -> feedback.failAnalysis(expectedAttempt, failureReason));
+        feedbackRepository.findByIdForUpdate(feedbackId).ifPresent(feedback -> {
+            if (feedback.getAnalysisStatus() != FeedbackAnalysisStatus.PROCESSING
+                    || feedback.getAnalysisRetryCount() != expectedAttempt) {
+                return;
+            }
+            feedback.failAnalysis(expectedAttempt, failureReason);
+            if (feedback.getAnalysisStatus() == FeedbackAnalysisStatus.FAILED
+                    && feedback.getAnalysisRetryCount() >= maxAttempts) {
+                notionSyncService.requestUpsert(feedbackId);
+            }
+        });
     }
 
     @Transactional(readOnly = true)
@@ -127,8 +141,13 @@ public class FeedbackAnalysisTransactionService {
 
     @Transactional
     public void markDiscordNotified(Long feedbackId, LocalDateTime notifiedAt) {
-        feedbackRepository.findByIdForUpdate(feedbackId)
-                .ifPresent(feedback -> feedback.markDiscordNotified(notifiedAt));
+        feedbackRepository.findByIdForUpdate(feedbackId).ifPresent(feedback -> {
+            if (feedback.getAnalysisStatus() == FeedbackAnalysisStatus.COMPLETED
+                    && feedback.getDiscordNotifiedAt() == null) {
+                feedback.markDiscordNotified(notifiedAt);
+                notionSyncService.requestUpsert(feedbackId);
+            }
+        });
     }
 
     @Transactional(readOnly = true)
@@ -150,6 +169,12 @@ public class FeedbackAnalysisTransactionService {
     @Transactional
     public void markDiscordNotified(List<Long> feedbackIds, LocalDateTime notifiedAt) {
         feedbackIds.forEach(feedbackId -> feedbackRepository.findByIdForUpdate(feedbackId)
-                .ifPresent(feedback -> feedback.markDiscordNotified(notifiedAt)));
+                .ifPresent(feedback -> {
+                    if (feedback.getAnalysisStatus() == FeedbackAnalysisStatus.COMPLETED
+                            && feedback.getDiscordNotifiedAt() == null) {
+                        feedback.markDiscordNotified(notifiedAt);
+                        notionSyncService.requestUpsert(feedbackId);
+                    }
+                }));
     }
 }

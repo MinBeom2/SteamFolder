@@ -46,6 +46,7 @@ public enum ErrorCode {
 
     // Feedback
     INVALID_FEEDBACK_CONTENT(HttpStatus.BAD_REQUEST, "FB001", "피드백 내용은 공백을 제외하고 10자 이상 3,000자 이하여야 합니다."),
+    FEEDBACK_NOTION_SYNC_CONFLICT(HttpStatus.CONFLICT, "FB002", "피드백 동기화 작업이 변경되었습니다. 다시 조회해주세요."),
 
     // Showcase & Social
     CANNOT_LIKE_OWN_SHOWCASE(HttpStatus.BAD_REQUEST, "S001", "본인의 쇼케이스에는 좋아요를 누를 수 없습니다.");

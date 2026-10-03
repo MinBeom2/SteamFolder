@@ -7,6 +7,7 @@ import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackAnalysisStatus
 import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackCategory;
 import com.steamfolder.steamfolder.domain.feedback.entity.FeedbackPriority;
 import com.steamfolder.steamfolder.domain.feedback.repository.FeedbackRepository;
+import com.steamfolder.steamfolder.domain.feedback.sync.FeedbackNotionSyncService;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,13 +18,16 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class FeedbackAnalysisTransactionServiceTest {
 
     private final FeedbackRepository feedbackRepository = mock(FeedbackRepository.class);
+    private final FeedbackNotionSyncService notionSyncService = mock(FeedbackNotionSyncService.class);
     private final FeedbackAnalysisTransactionService service =
-            new FeedbackAnalysisTransactionService(feedbackRepository);
+            new FeedbackAnalysisTransactionService(feedbackRepository, notionSyncService);
 
     @Test
     @DisplayName("분석 시작 시 PROCESSING으로 변경하고 시도 횟수를 증가시킨다")
@@ -67,6 +71,7 @@ class FeedbackAnalysisTransactionServiceTest {
         assertThat(feedback.getAnalysisStatus()).isEqualTo(FeedbackAnalysisStatus.FAILED);
         assertThat(feedback.getAnalysisFailureReason())
                 .isEqualTo(FeedbackAnalysisFailureReason.AI_TIMEOUT);
+        verify(notionSyncService).requestUpsert(1L);
     }
 
     @Test
@@ -83,6 +88,24 @@ class FeedbackAnalysisTransactionServiceTest {
         assertThat(staleCompleted).isFalse();
         assertThat(currentCompleted).isTrue();
         assertThat(feedback.getAnalysisStatus()).isEqualTo(FeedbackAnalysisStatus.COMPLETED);
+        verify(notionSyncService).requestUpsert(1L);
+    }
+
+    @Test
+    @DisplayName("분석 실패는 최대 재시도 소진 후에만 Notion에 전달한다")
+    void queuesOnlyFinalFailure() {
+        Feedback feedback = feedback();
+        when(feedbackRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(feedback));
+
+        int firstAttempt = feedback.startAnalysis();
+        service.failAnalysis(1L, firstAttempt, FeedbackAnalysisFailureReason.AI_TIMEOUT, 3);
+        verify(notionSyncService, never()).requestUpsert(1L);
+
+        feedback.startAnalysis();
+        feedback.failAnalysis(2, FeedbackAnalysisFailureReason.AI_TIMEOUT);
+        feedback.startAnalysis();
+        service.failAnalysis(1L, 3, FeedbackAnalysisFailureReason.AI_TIMEOUT, 3);
+        verify(notionSyncService).requestUpsert(1L);
     }
 
     private Feedback feedback() {

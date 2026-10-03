@@ -1,6 +1,7 @@
 package com.steamfolder.steamfolder.domain.user.service;
 
 import com.steamfolder.steamfolder.domain.feedback.repository.FeedbackRepository;
+import com.steamfolder.steamfolder.domain.feedback.sync.FeedbackNotionSyncService;
 import com.steamfolder.steamfolder.domain.folder.repository.FolderRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.showcase.entity.ShowcaseLike;
@@ -22,6 +23,7 @@ public class UserDataCleanupService {
     private final UserGameRepository userGameRepository;
     private final ShowcaseLikeRepository showcaseLikeRepository;
     private final FeedbackRepository feedbackRepository;
+    private final FeedbackNotionSyncService notionSyncService;
     private final RefreshTokenRepository refreshTokenRepository;
 
     public void resetWorkspace(User user) {
@@ -32,6 +34,7 @@ public class UserDataCleanupService {
         resetWorkspace(user);
         userGameRepository.deleteByUser(user);
         deleteShowcaseLikes(user);
+        notionSyncService.requestArchiveForUser(user);
         feedbackRepository.deleteByUser(user);
         refreshTokenRepository.deleteByUser(user);
     }

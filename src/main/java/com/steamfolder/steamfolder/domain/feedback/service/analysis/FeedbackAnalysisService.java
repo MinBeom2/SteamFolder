@@ -61,7 +61,8 @@ public class FeedbackAnalysisService {
             transactionService.failAnalysis(
                     target.feedbackId(),
                     target.attempt(),
-                    exception.getFailureReason()
+                    exception.getFailureReason(),
+                    properties.getMaxAttempts()
             );
             log.warn(
                     "Feedback analysis failed: feedbackId={}, attempt={}, reason={}",
@@ -73,7 +74,8 @@ public class FeedbackAnalysisService {
             transactionService.failAnalysis(
                     target.feedbackId(),
                     target.attempt(),
-                    FeedbackAnalysisFailureReason.UNKNOWN_ERROR
+                    FeedbackAnalysisFailureReason.UNKNOWN_ERROR,
+                    properties.getMaxAttempts()
             );
             log.error(
                     "Unexpected feedback analysis failure: feedbackId={}, attempt={}",
