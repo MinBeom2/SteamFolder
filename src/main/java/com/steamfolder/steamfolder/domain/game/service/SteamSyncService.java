@@ -216,7 +216,7 @@ public class SteamSyncService {
                             .build())
                     .toList();
         } else {
-            // 도전과제가 없거나(0개) 비공개 프로필인 경우
+            // 클라이언트에서 확인된 no-stats 또는 정상 빈 업적 목록만 0개로 저장한다.
             userGame.updateAchievements(0, 0, null);
         }
 

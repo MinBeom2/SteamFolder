@@ -3,6 +3,7 @@ package com.steamfolder.steamfolder.domain.game.service;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.game.client.SteamApiClient;
+import com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.CooldownResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.response.SyncResultResponseDto;
 import com.steamfolder.steamfolder.domain.game.dto.steam.SteamOwnedGamesResponseDto;
@@ -14,15 +15,23 @@ import com.steamfolder.steamfolder.domain.game.repository.GameRepository;
 import com.steamfolder.steamfolder.domain.game.repository.UserGameRepository;
 import com.steamfolder.steamfolder.domain.user.entity.User;
 import java.util.ArrayList;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -262,7 +271,7 @@ class SteamSyncServiceTest {
         }
 
         @Test
-        @DisplayName("성공: 스팀에서 업적이 없거나 비공개인 경우 total=0, rate=null로 갱신된다")
+        @DisplayName("성공: 스팀에서 업적 없음이 확인된 경우 total=0, rate=null로 갱신된다")
         void syncUserGameAchievements_NoAchievements_Success() {
             // given
             Game game = Game.builder().appId(20L).name("No Achievement Game").build();
@@ -280,8 +289,126 @@ class SteamSyncServiceTest {
             assertThat(response.getTotalAchievements()).isEqualTo(0);
             assertThat(response.getAchievedAchievements()).isEqualTo(0);
             assertThat(response.getAchievementRate()).isNull();
+            assertThat(response.getAchievements()).isEmpty();
+            assertThat(response.getSyncedAt()).isNotNull();
             assertThat(userGame.getTotalAchievements()).isEqualTo(0);
             assertThat(userGame.getAchievementRate()).isNull();
+        }
+
+        @Test
+        @DisplayName("appId 2688840의 실제 no-stats 응답을 클라이언트부터 통계·캐시 저장까지 검증한다")
+        void syncUserGameAchievements_ObservedNoStats_StoresConfirmedZero() throws IOException {
+            try (MockWebServer server = new MockWebServer()) {
+                server.start();
+                String body;
+                try (var stream = getClass().getResourceAsStream("/steam/2688840-no-stats.json")) {
+                    body = new String(java.util.Objects.requireNonNull(stream).readAllBytes(), StandardCharsets.UTF_8);
+                }
+                server.enqueue(new MockResponse().setResponseCode(400)
+                        .setHeader("Content-Type", "application/json; charset=UTF-8").setBody(body));
+                String baseUrl = server.url("/").toString();
+                SteamApiClient realClient = SteamApiClient.createForTest(WebClient.builder(), "test-api-key", baseUrl, baseUrl);
+                SteamSyncService service = new SteamSyncService(realClient, gameRepository, userGameRepository,
+                        cooldownManager, gameMetadataEnrichmentService);
+                Game game = Game.builder().appId(2688840L).name("No Stats Game").build();
+                UserGame userGame = UserGame.builder().user(testUser).game(game)
+                        .totalAchievements(10).achievedAchievements(8).achievementRate(80.0)
+                        .achievementsSyncedAt(LocalDateTime.now().minusHours(2)).build();
+                given(userGameRepository.findByUserAndGame_AppId(testUser, 2688840L)).willReturn(Optional.of(userGame));
+
+                var response = service.getGameAchievements(testUser, 2688840L);
+
+                assertThat(response.getTotalAchievements()).isZero();
+                assertThat(response.getAchievedAchievements()).isZero();
+                assertThat(response.getAchievementRate()).isNull();
+                assertThat(response.getAchievements()).isEmpty();
+                assertThat(userGame.getTotalAchievements()).isZero();
+                assertThat(userGame.getAchievementsSyncedAt()).isEqualTo(response.getSyncedAt());
+                assertThat(service.getGameAchievements(testUser, 2688840L)).isSameAs(response);
+                assertThat(server.getRequestCount()).isEqualTo(1);
+            }
+        }
+
+        @Test
+        @DisplayName("정상 빈 업적 목록도 rate=null인 0개로 저장한다")
+        void syncUserGameAchievements_ValidEmptyList_StoresZero() {
+            Game game = Game.builder().appId(2688840L).name("Zero Game").build();
+            UserGame userGame = UserGame.builder().user(testUser).game(game).build();
+            given(userGameRepository.findByUserAndGame_AppId(testUser, 2688840L)).willReturn(Optional.of(userGame));
+            var stats = new SteamPlayerAchievementsResponseDto.PlayerStats();
+            ReflectionTestUtils.setField(stats, "success", true);
+            given(steamApiClient.getPlayerAchievements(testUser.getSteamId(), 2688840L)).willReturn(Optional.of(stats));
+
+            var response = steamSyncService.getGameAchievements(testUser, 2688840L);
+
+            assertThat(response.getTotalAchievements()).isZero();
+            assertThat(response.getAchievedAchievements()).isZero();
+            assertThat(response.getAchievementRate()).isNull();
+            assertThat(response.getAchievements()).isEmpty();
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ErrorCode.class, names = {"STEAM_API_ERROR", "STEAM_PROFILE_PRIVATE"})
+        @DisplayName("조회 실패 시 DB 통계·성공 시각과 기존 메모리 캐시를 모두 보존한다")
+        void syncUserGameAchievements_Failure_PreservesStatsTimestampAndCache(ErrorCode errorCode) {
+            Long appId = 2688840L;
+            LocalDateTime syncedAt = LocalDateTime.now().minusHours(2);
+            Game game = Game.builder().appId(appId).name("Existing Game").build();
+            UserGame userGame = UserGame.builder().user(testUser).game(game)
+                    .totalAchievements(50).achievedAchievements(40).achievementRate(80.0)
+                    .achievementsSyncedAt(syncedAt).build();
+            given(userGameRepository.findByUserAndGame_AppId(testUser, appId)).willReturn(Optional.of(userGame));
+            given(steamApiClient.getPlayerAchievements(testUser.getSteamId(), appId))
+                    .willThrow(new CustomException(errorCode));
+            var cached = GameAchievementDetailResponseDto.builder().appId(appId)
+                    .totalAchievements(50).achievedAchievements(40).achievementRate(80.0)
+                    .syncedAt(syncedAt).achievements(List.of()).build();
+            @SuppressWarnings("unchecked")
+            Map<String, GameAchievementDetailResponseDto> cache = (Map<String, GameAchievementDetailResponseDto>)
+                    ReflectionTestUtils.getField(steamSyncService, "achievementCache");
+            String key = testUser.getSteamId() + ":" + appId;
+            cache.put(key, cached);
+
+            assertThatThrownBy(() -> steamSyncService.getGameAchievements(testUser, appId))
+                    .isInstanceOf(CustomException.class).hasFieldOrPropertyWithValue("errorCode", errorCode);
+
+            assertThat(userGame.getTotalAchievements()).isEqualTo(50);
+            assertThat(userGame.getAchievedAchievements()).isEqualTo(40);
+            assertThat(userGame.getAchievementRate()).isEqualTo(80.0);
+            assertThat(userGame.getAchievementsSyncedAt()).isEqualTo(syncedAt);
+            assertThat(cache).hasSize(1);
+            assertThat(cache.get(key)).isSameAs(cached);
+            verify(userGameRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Steam의 미확인 실패 본문은 클라이언트·서비스를 거쳐도 기존 값을 0개로 덮어쓰지 않는다")
+        void syncUserGameAchievements_UpstreamUnknownFailure_PreservesExistingStats() throws IOException {
+            try (MockWebServer server = new MockWebServer()) {
+                server.start();
+                server.enqueue(new MockResponse().setResponseCode(400).setHeader("Content-Type", "application/json")
+                        .setBody("{\"playerstats\":{\"success\":false,\"error\":\"Failed to retrieve data for the player\"}}"));
+                String baseUrl = server.url("/").toString();
+                SteamApiClient realClient = SteamApiClient.createForTest(WebClient.builder(), "test-api-key", baseUrl, baseUrl);
+                SteamSyncService service = new SteamSyncService(realClient, gameRepository, userGameRepository,
+                        cooldownManager, gameMetadataEnrichmentService);
+                LocalDateTime syncedAt = LocalDateTime.now().minusHours(2);
+                Game game = Game.builder().appId(2688840L).name("Existing Game").build();
+                UserGame userGame = UserGame.builder().user(testUser).game(game)
+                        .totalAchievements(50).achievedAchievements(40).achievementRate(80.0)
+                        .achievementsSyncedAt(syncedAt).build();
+                given(userGameRepository.findByUserAndGame_AppId(testUser, 2688840L)).willReturn(Optional.of(userGame));
+
+                assertThatThrownBy(() -> service.getGameAchievements(testUser, 2688840L))
+                        .isInstanceOf(CustomException.class)
+                        .hasFieldOrPropertyWithValue("errorCode", ErrorCode.STEAM_API_ERROR);
+
+                assertThat(userGame.getTotalAchievements()).isEqualTo(50);
+                assertThat(userGame.getAchievedAchievements()).isEqualTo(40);
+                assertThat(userGame.getAchievementRate()).isEqualTo(80.0);
+                assertThat(userGame.getAchievementsSyncedAt()).isEqualTo(syncedAt);
+                assertThat((Map<?, ?>) ReflectionTestUtils.getField(service, "achievementCache")).isEmpty();
+            }
         }
 
         @Test

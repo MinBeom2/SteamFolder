@@ -1,6 +1,9 @@
 package com.steamfolder.steamfolder.domain.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.steamfolder.steamfolder.common.exception.CustomException;
+import com.steamfolder.steamfolder.common.exception.ErrorCode;
+import com.steamfolder.steamfolder.domain.game.dto.response.GameAchievementDetailResponseDto;
 import com.steamfolder.steamfolder.common.exception.GlobalExceptionHandler;
 import com.steamfolder.steamfolder.common.security.UserPrincipal;
 import com.steamfolder.steamfolder.common.security.config.SecurityConfig;
@@ -27,6 +30,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.hasKey;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -309,5 +314,48 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.appId").value(1091500L))
                 .andExpect(jsonPath("$.data.achievementRate").value(80.0));
+    }
+
+    @Test
+    @DisplayName("GET 업적 없음: HTTP200, total=0, achieved=0, rate=null, achievements=[] 계약 유지")
+    void getAchievements_ConfirmedZero_ReturnsExistingContract() throws Exception {
+        given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
+        given(steamSyncService.getGameAchievements(testUser, 2688840L))
+                .willReturn(GameAchievementDetailResponseDto.builder().appId(2688840L)
+                        .totalAchievements(0).achievedAchievements(0).achievementRate(null)
+                        .achievements(List.of()).build());
+
+        mockMvc.perform(get("/api/v1/users/me/games/2688840/achievements").with(authentication(testAuth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalAchievements").value(0))
+                .andExpect(jsonPath("$.data.achievedAchievements").value(0))
+                .andExpect(jsonPath("$.data").value(hasKey("achievementRate")))
+                .andExpect(jsonPath("$.data.achievementRate").value(nullValue()))
+                .andExpect(jsonPath("$.data.achievements").isArray())
+                .andExpect(jsonPath("$.data.achievements").isEmpty());
+    }
+
+    @Test
+    @DisplayName("GET 업적 외부 오류: HTTP503 G003 계약 유지")
+    void getAchievements_ExternalFailure_Returns503G003() throws Exception {
+        given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
+        given(steamSyncService.getGameAchievements(testUser, 2688840L))
+                .willThrow(new CustomException(ErrorCode.STEAM_API_ERROR));
+
+        mockMvc.perform(get("/api/v1/users/me/games/2688840/achievements").with(authentication(testAuth)))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.code").value("G003"));
+    }
+
+    @Test
+    @DisplayName("GET 업적 비공개: HTTP400 G004 계약 유지")
+    void getAchievements_Private_Returns400G004() throws Exception {
+        given(userRepository.findById(1L)).willReturn(java.util.Optional.of(testUser));
+        given(steamSyncService.getGameAchievements(testUser, 2688840L))
+                .willThrow(new CustomException(ErrorCode.STEAM_PROFILE_PRIVATE));
+
+        mockMvc.perform(get("/api/v1/users/me/games/2688840/achievements").with(authentication(testAuth)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("G004"));
     }
 }
