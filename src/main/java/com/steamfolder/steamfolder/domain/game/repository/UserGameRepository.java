@@ -39,6 +39,9 @@ public interface UserGameRepository extends JpaRepository<UserGame, Long>, JpaSp
     @Query("SELECT ug.user.id, COUNT(ug) FROM UserGame ug WHERE ug.user.id IN :userIds GROUP BY ug.user.id")
     List<Object[]> countUserGamesByUserIds(@Param("userIds") List<Long> userIds);
 
+    @Query("SELECT ug.user.id, SUM(ug.playtimeForever) FROM UserGame ug WHERE ug.user.id IN :userIds GROUP BY ug.user.id")
+    List<Object[]> sumPlaytimeByUserIds(@Param("userIds") List<Long> userIds);
+
     @Query("SELECT COALESCE(SUM(ug.playtimeForever), 0) FROM UserGame ug WHERE ug.user = :user")
     int sumPlaytimeByUser(@Param("user") User user);
 

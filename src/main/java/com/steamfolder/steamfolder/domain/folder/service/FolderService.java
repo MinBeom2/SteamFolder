@@ -3,6 +3,7 @@ package com.steamfolder.steamfolder.domain.folder.service;
 import com.steamfolder.steamfolder.common.exception.CustomException;
 import com.steamfolder.steamfolder.common.exception.ErrorCode;
 import com.steamfolder.steamfolder.domain.folder.dto.request.CreateFolderRequest;
+import com.steamfolder.steamfolder.domain.folder.dto.request.CopyFolderRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.request.MoveFolderRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.request.UpdateFolderRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.request.UpdatePositionsRequest;
@@ -40,6 +41,105 @@ public class FolderService {
     private final FolderGameRepository folderGameRepository;
     private final UserRepository userRepository;
     private final UserGameRepository userGameRepository;
+
+    /**
+     * Copy the complete subtree as new folder and game placements in one transaction.
+     * Game metadata and owned-game playtime remain shared with the original.
+     */
+    @Transactional
+    public FolderResponse copyFolder(Long userId, Long folderId, CopyFolderRequest request) {
+        User user = findUserById(userId);
+        Folder source = findFolderByIdAndValidateOwnership(folderId, userId);
+        Folder targetParent = request.getTargetParentFolderId() == null ? null
+                : findFolderByIdAndValidateOwnership(request.getTargetParentFolderId(), userId);
+        int depth = targetParent == null ? 0 : targetParent.getDepth() + 1;
+        if (depth + calculateMaxSubtreeDepth(source) >= MAX_DEPTH) {
+            throw new CustomException(ErrorCode.MAX_FOLDER_DEPTH_EXCEEDED);
+        }
+        if (folderRepository.countByUser(user) + countSubtreeFolders(source) > MAX_FOLDER_COUNT) {
+            throw new CustomException(ErrorCode.MAX_FOLDER_COUNT_EXCEEDED);
+        }
+
+        String name = request.getName();
+        if (name != null) {
+            if (name.isBlank()) {
+                throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+            }
+            validateDuplicateFolderName(user, targetParent, name, null);
+        } else {
+            name = findCopyName(user, targetParent, source.getName());
+        }
+
+        List<Folder> siblings = targetParent == null
+                ? folderRepository.findByUserAndParentFolderIsNullOrderByPositionYAscPositionXAsc(user)
+                : folderRepository.findByUserAndParentFolderOrderByPositionYAscPositionXAsc(user, targetParent);
+        Integer requestedX = request.getTargetPositionX();
+        Integer requestedY = request.getTargetPositionY();
+        boolean occupied = requestedX != null && requestedY != null
+                && (siblings.stream().anyMatch(folder -> folder.getPositionX() == requestedX
+                        && folder.getPositionY() == requestedY)
+                || (targetParent != null && folderGameRepository.existsByFolderAndPositionXAndPositionY(
+                        targetParent, requestedX, requestedY)));
+        int[] position = requestedX == null || requestedY == null || occupied
+                ? findNextAvailablePosition(user, targetParent, DEFAULT_GRID_COLS)
+                : new int[]{requestedX, requestedY};
+
+        // Build before saving, so copying into the source subtree cannot expand the source during traversal.
+        Folder copy = copySubtree(source, user, targetParent, depth, name, position[0], position[1]);
+        Folder saved = folderRepository.saveAndFlush(copy);
+        Map<Long, UserGame> userGameMap = userGameRepository.findByUser(user).stream()
+                .collect(Collectors.toMap(ug -> ug.getGame().getAppId(), ug -> ug, (a, b) -> a));
+        return FolderResponse.from(saved, userGameMap);
+    }
+
+    private int countSubtreeFolders(Folder folder) {
+        return 1 + folder.getChildFolders().stream().mapToInt(this::countSubtreeFolders).sum();
+    }
+
+    private String findCopyName(User user, Folder parent, String sourceName) {
+        String name = sourceName;
+        int copyNumber = 1;
+        while (parent == null
+                ? folderRepository.existsByUserAndParentFolderIsNullAndName(user, name)
+                : folderRepository.existsByUserAndParentFolderAndName(user, parent, name)) {
+            String suffix = copyNumber == 1 ? " - 복사본" : " - 복사본 (" + copyNumber + ")";
+            name = sourceName.substring(0, Math.min(sourceName.length(), 100 - suffix.length())) + suffix;
+            copyNumber++;
+        }
+        return name;
+    }
+
+    private Folder copySubtree(Folder source, User user, Folder parent, int depth,
+                               String name, int x, int y) {
+        if (source.getFolderGames().size() > FolderGameService.MAX_GAMES_PER_FOLDER) {
+            throw new CustomException(ErrorCode.MAX_FOLDER_GAME_COUNT_EXCEEDED);
+        }
+        Folder copy = Folder.builder()
+                .user(user)
+                .parentFolder(parent)
+                .name(name)
+                .themeColor(source.getThemeColor())
+                .icon(source.getIcon())
+                .isOpen(source.isOpen())
+                .positionX(x)
+                .positionY(y)
+                .depth(depth)
+                .build();
+        for (FolderGame game : source.getFolderGames()) {
+            copy.getFolderGames().add(FolderGame.builder()
+                    .folder(copy)
+                    .game(game.getGame())
+                    .positionX(game.getPositionX())
+                    .positionY(game.getPositionY())
+                    .build());
+        }
+        for (Folder child : source.getChildFolders()) {
+            copy.addChildFolder(copySubtree(child, user, copy, depth + 1,
+                    child.getName(), child.getPositionX(), child.getPositionY()));
+        }
+        return copy;
+    }
+
 
     /**
      * 폴더 생성 (2D 격자 좌표 지정 또는 자동 빈 칸 탐색)

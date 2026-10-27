@@ -61,6 +61,9 @@ class ShowcaseRankingServiceTest {
         given(userGameRepository.countUserGamesByUserIds(List.of(10L, 20L)))
                 .willReturn(gameCountsMock);
 
+        given(userGameRepository.sumPlaytimeByUserIds(List.of(10L, 20L)))
+                .willReturn(List.of(new Object[]{10L, 3_000_000_000L}, new Object[]{20L, 125L}));
+
         // when (비로그인: currentUserId == null)
         ShowcaseRankingResponse response = showcaseService.getShowcaseRankings(null, null, 2, null);
 
@@ -78,6 +81,8 @@ class ShowcaseRankingServiceTest {
         assertThat(item1.getUsername()).isEqualTo("King");
         assertThat(item1.getLikeCount()).isEqualTo(100);
         assertThat(item1.getTotalGamesCount()).isEqualTo(15L);
+        assertThat(item1.getTotalPlaytimeForever()).isEqualTo(3_000_000_000L);
+        assertThat(response.getContent().get(1).getTotalPlaytimeForever()).isEqualTo(125L);
 
         ShowcaseRankingItemDto item2 = response.getContent().get(1);
         assertThat(item2.getRank()).isEqualTo(2L);
@@ -116,6 +121,7 @@ class ShowcaseRankingServiceTest {
         assertThat(item3.getUserId()).isEqualTo(30L);
         assertThat(item3.getLikeCount()).isEqualTo(50);
         assertThat(item3.getTotalGamesCount()).isEqualTo(3L);
+        assertThat(item3.getTotalPlaytimeForever()).isZero();
     }
 
     @Test
@@ -140,6 +146,8 @@ class ShowcaseRankingServiceTest {
 
         given(userRepository.findById(99L)).willReturn(Optional.of(myUser));
         given(userRepository.countShowcasesStrictlyAhead(15, 99L)).willReturn(41L); // 앞선 순위 41명
+        given(userGameRepository.sumPlaytimeByUserIds(List.of(10L, 20L, 99L)))
+                .willReturn(Collections.singletonList(new Object[]{99L, 3_000_000_000L}));
         given(userGameRepository.countByUser(myUser)).willReturn(12L); // 보유 게임 12개
 
         // when
@@ -147,6 +155,7 @@ class ShowcaseRankingServiceTest {
 
         // then
         assertThat(response.getMyRanking()).isNotNull();
+        assertThat(response.getMyRanking().getTotalPlaytimeForever()).isEqualTo(3_000_000_000L);
         assertThat(response.getMyRanking().getRank()).isEqualTo(42L); // 41 + 1 = 42위!
         assertThat(response.getMyRanking().getUserId()).isEqualTo(99L);
         assertThat(response.getMyRanking().getUsername()).isEqualTo("MyShowcase");
@@ -184,6 +193,7 @@ class ShowcaseRankingServiceTest {
         assertThat(response.getMyRanking().isPublic()).isFalse();
         assertThat(response.getMyRanking().getLikeCount()).isEqualTo(5);
         assertThat(response.getMyRanking().getTotalGamesCount()).isEqualTo(7L);
+        assertThat(response.getMyRanking().getTotalPlaytimeForever()).isZero();
         // countShowcasesStrictlyAhead 순위 쿼리는 절대 호출되지 않아야 함 (0회 호출)
         then(userRepository).should(never()).countShowcasesStrictlyAhead(anyInt(), anyLong());
     }
@@ -219,6 +229,7 @@ class ShowcaseRankingServiceTest {
 
         // then
         assertThat(response.getContent()).isEmpty();
+        then(userGameRepository).should(never()).sumPlaytimeByUserIds(any());
         assertThat(response.getMyRanking()).isNull();
         assertThat(response.isHasNext()).isFalse();
         assertThat(response.getNextCursorLikeCount()).isNull();

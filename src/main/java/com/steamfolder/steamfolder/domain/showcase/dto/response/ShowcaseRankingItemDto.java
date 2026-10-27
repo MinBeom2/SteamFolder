@@ -18,6 +18,7 @@ public class ShowcaseRankingItemDto {
     private String avatarUrl;
     private int likeCount;
     private long totalGamesCount;
+    private long totalPlaytimeForever;
 
     @JsonProperty("isLiked")
     private boolean isLiked;

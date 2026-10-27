@@ -232,6 +232,16 @@ public class ShowcaseService {
                                 row -> (Long) row[1]
                         ));
 
+        Optional<User> currentUserOpt = !hasCursor && currentUserId != null
+                ? userRepository.findById(currentUserId).filter(user -> !user.isDeleted())
+                : Optional.empty();
+        List<Long> playtimeUserIds = new ArrayList<>(userIds);
+        currentUserOpt.filter(user -> !playtimeUserIds.contains(user.getId()))
+                .ifPresent(user -> playtimeUserIds.add(user.getId()));
+        Map<Long, Long> totalPlaytimes = playtimeUserIds.isEmpty() ? Map.of() :
+                userGameRepository.sumPlaytimeByUserIds(playtimeUserIds).stream()
+                        .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
         Set<Long> likedTargetUserIds = (currentUserId != null && !userIds.isEmpty())
                 ? showcaseLikeRepository.findTargetUserIdsByUserIdAndTargetUserIdIn(currentUserId, userIds)
                 : Set.of();
@@ -250,6 +260,7 @@ public class ShowcaseService {
                     .avatarUrl(u.getAvatarUrl())
                     .likeCount(u.getLikeCount())
                     .totalGamesCount(totalGamesCount)
+                    .totalPlaytimeForever(totalPlaytimes.getOrDefault(u.getId(), 0L))
                     .isLiked(isLiked)
                     .isPublic(true)
                     .build());
@@ -266,7 +277,6 @@ public class ShowcaseService {
         // 로그인 사용자의 본인 순위 및 좋아요 수 계산 (첫 페이지 조회 시에만 1회 계산, 무한 스크롤 시 중복 쿼리 완전 방어)
         ShowcaseRankingItemDto myRanking = null;
         if (!hasCursor && currentUserId != null) {
-            Optional<User> currentUserOpt = userRepository.findById(currentUserId);
             if (currentUserOpt.isPresent() && !currentUserOpt.get().isDeleted()) {
                 User currentUser = currentUserOpt.get();
                 Long myRank = currentUser.isPublic()
@@ -281,6 +291,7 @@ public class ShowcaseService {
                         .avatarUrl(currentUser.getAvatarUrl())
                         .likeCount(currentUser.getLikeCount())
                         .totalGamesCount(myGamesCount)
+                        .totalPlaytimeForever(totalPlaytimes.getOrDefault(currentUser.getId(), 0L))
                         .isLiked(false)
                         .isPublic(currentUser.isPublic())
                         .build();

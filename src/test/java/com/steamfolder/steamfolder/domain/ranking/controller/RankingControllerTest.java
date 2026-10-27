@@ -53,6 +53,7 @@ class RankingControllerTest {
                 .avatarUrl("https://avatars.steamstatic.com/avatar1.jpg")
                 .likeCount(120)
                 .totalGamesCount(350L)
+                .totalPlaytimeForever(3_000_000_000L)
                 .build();
 
         ShowcaseRankingItemDto item2 = ShowcaseRankingItemDto.builder()
@@ -86,6 +87,8 @@ class RankingControllerTest {
                 .andExpect(jsonPath("$.data.content[0].username").value("GamerGod"))
                 .andExpect(jsonPath("$.data.content[0].likeCount").value(120))
                 .andExpect(jsonPath("$.data.content[0].totalGamesCount").value(350))
+                .andExpect(jsonPath("$.data.content[0].totalPlaytimeForever").value(3_000_000_000L))
+                .andExpect(jsonPath("$.data.content[1].totalPlaytimeForever").value(0))
                 .andExpect(jsonPath("$.data.content[1].rank").value(2))
                 .andExpect(jsonPath("$.data.myRanking").doesNotExist())
                 .andExpect(jsonPath("$.data.nextCursorLikeCount").value(85))
@@ -149,6 +152,7 @@ class RankingControllerTest {
                 .avatarUrl("https://my-avatar.jpg")
                 .likeCount(15)
                 .totalGamesCount(12L)
+                .totalPlaytimeForever(125L)
                 .build();
 
         ShowcaseRankingResponse response = ShowcaseRankingResponse.builder()
@@ -172,6 +176,7 @@ class RankingControllerTest {
                 .andExpect(jsonPath("$.data.myRanking.userId").value(99))
                 .andExpect(jsonPath("$.data.myRanking.username").value("MyShowcase"))
                 .andExpect(jsonPath("$.data.myRanking.likeCount").value(15))
-                .andExpect(jsonPath("$.data.myRanking.totalGamesCount").value(12));
+                .andExpect(jsonPath("$.data.myRanking.totalGamesCount").value(12))
+                .andExpect(jsonPath("$.data.myRanking.totalPlaytimeForever").value(125));
     }
 }

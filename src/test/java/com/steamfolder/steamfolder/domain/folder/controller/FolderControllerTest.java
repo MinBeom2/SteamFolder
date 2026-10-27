@@ -7,6 +7,7 @@ import com.steamfolder.steamfolder.common.security.config.SecurityConfig;
 import com.steamfolder.steamfolder.common.security.jwt.JwtAuthenticationEntryPoint;
 import com.steamfolder.steamfolder.common.security.jwt.JwtTokenProvider;
 import com.steamfolder.steamfolder.domain.folder.dto.request.CreateFolderRequest;
+import com.steamfolder.steamfolder.domain.folder.dto.request.CopyFolderRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.request.MoveFolderRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.request.UpdateFolderRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.request.UpdatePositionsRequest;
@@ -251,5 +252,41 @@ class FolderControllerTest {
                         .with(authentication(testAuth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void copyFolder_Returns201WithCopiedContents() throws Exception {
+        FolderResponse response = FolderResponse.builder().id(100L).name("Copy")
+                .parentFolderId(2L).gameCount(1).childFolderCount(1)
+                .childFolders(List.of(FolderResponse.builder().id(101L).name("Child").build()))
+                .games(List.of(FolderResponse.FolderGameDto.builder().id(200L).appId(10L).build()))
+                .build();
+        given(folderService.copyFolder(eq(1L), eq(10L), any(CopyFolderRequest.class))).willReturn(response);
+        mockMvc.perform(post("/api/v1/folders/10/copy")
+                        .with(authentication(testAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(CopyFolderRequest.builder()
+                                .targetParentFolderId(2L).targetPositionX(1).targetPositionY(0).build())))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").value(100))
+                .andExpect(jsonPath("$.data.games[0].appId").value(10))
+                .andExpect(jsonPath("$.data.childFolders[0].id").value(101));
+    }
+
+    @Test
+    void copyFolder_RejectsNegativeCoordinatesAndOverlongNames() throws Exception {
+        mockMvc.perform(post("/api/v1/folders/10/copy")
+                        .with(authentication(testAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(CopyFolderRequest.builder().targetPositionX(-1).build())))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/v1/folders/10/copy")
+                        .with(authentication(testAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(CopyFolderRequest.builder()
+                                .name("x".repeat(101)).build())))
+                .andExpect(status().isBadRequest());
+        org.mockito.Mockito.verify(folderService, org.mockito.Mockito.never())
+                .copyFolder(any(), any(), any());
     }
 }

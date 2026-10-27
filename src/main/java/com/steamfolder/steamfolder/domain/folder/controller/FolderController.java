@@ -3,6 +3,7 @@ package com.steamfolder.steamfolder.domain.folder.controller;
 import com.steamfolder.steamfolder.common.dto.ApiResponse;
 import com.steamfolder.steamfolder.common.security.UserPrincipal;
 import com.steamfolder.steamfolder.domain.folder.dto.request.CreateFolderRequest;
+import com.steamfolder.steamfolder.domain.folder.dto.request.CopyFolderRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.request.MoveFolderRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.request.UpdateFolderRequest;
 import com.steamfolder.steamfolder.domain.folder.dto.request.UpdatePositionsRequest;
@@ -23,6 +24,17 @@ import java.util.List;
 public class FolderController {
 
     private final FolderService folderService;
+
+    @PostMapping("/{folderId}/copy")
+    public ResponseEntity<ApiResponse<FolderResponse>> copyFolder(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long folderId,
+            @Valid @RequestBody CopyFolderRequest request
+    ) {
+        FolderResponse response = folderService.copyFolder(principal.getUserId(), folderId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("폴더가 성공적으로 복사되었습니다.", response));
+    }
 
     /**
      * 폴더 생성 API
